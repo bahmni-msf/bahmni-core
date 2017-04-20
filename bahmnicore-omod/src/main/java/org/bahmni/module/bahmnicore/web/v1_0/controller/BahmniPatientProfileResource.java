@@ -175,7 +175,7 @@ public class BahmniPatientProfileResource extends DelegatingCrudResource<Patient
         } catch (DataException e) {
             return new ResponseEntity<Object>(RestUtil.wrapErrorResponse(e, e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (APIAuthenticationException e) {
-            return new ResponseEntity<Object>(RestUtil.wrapErrorResponse(e, "Unable to save. " + e.getMessage()), HttpStatus.FORBIDDEN);
+            return new ResponseEntity<Object>(RestUtil.wrapErrorResponse(e, "Unable to save. "), HttpStatus.FORBIDDEN);
         } catch (Exception e) {
             return new ResponseEntity<Object>(RestUtil.wrapErrorResponse(e, e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
