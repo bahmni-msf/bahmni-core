@@ -1,12 +1,15 @@
 package org.openmrs.module.bahmniemrapi.encountertransaction.contract;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.openmrs.Obs;
 import org.openmrs.module.bahmniemrapi.obsrelation.contract.ObsRelationship;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 import org.openmrs.module.emrapi.utils.CustomJsonDateSerializer;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -37,6 +40,11 @@ public class BahmniObservation implements Comparable<BahmniObservation>{
     private Boolean isUnknown;
     private String formNamespace;
     private String formFieldPath;
+    private String interpretation;
+    private String status;
+
+    @JsonIgnore
+    private Serializable complexData;
 
     public BahmniObservation() {
         encounterTransactionObservation = new EncounterTransaction.Observation();
@@ -384,4 +392,35 @@ public class BahmniObservation implements Comparable<BahmniObservation>{
     public String getFormFieldPath() {
         return encounterTransactionObservation.getFormFieldPath();
     }
+
+    public String getInterpretation() {
+        return encounterTransactionObservation.getInterpretation();
+    }
+
+    public BahmniObservation setInterpretation(String interpretation) {
+        encounterTransactionObservation.setInterpretation(interpretation);
+        this.interpretation = interpretation;
+        return this;
+    }
+
+    public String getStatus() {
+        return encounterTransactionObservation.getStatus();
+    }
+
+    public BahmniObservation setStatus(String status) {
+        encounterTransactionObservation.setStatus(status);
+        this.status = status;
+        return this;
+    }
+
+    @JsonProperty
+    public Serializable getComplexData() {
+        return complexData;
+    }
+
+    @JsonIgnore
+    public void setComplexData(Serializable complexData) {
+        this.complexData = complexData;
+    }
+
 }

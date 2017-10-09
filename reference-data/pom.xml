@@ -10,7 +10,7 @@
     <parent>
         <groupId>org.bahmni.module</groupId>
         <artifactId>bahmni</artifactId>
-        <version>0.89-SNAPSHOT</version>
+        <version>0.90-SNAPSHOT</version>
     </parent>
     <artifactId>reference-data</artifactId>
     <packaging>pom</packaging>
@@ -71,6 +71,12 @@
                 <artifactId>webservices.rest-omod</artifactId>
                 <version>${openMRSWebServicesVersion}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.openmrs.module</groupId>
+                <artifactId>metadatamapping-api</artifactId>
+                <version>${metadatamapping.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
