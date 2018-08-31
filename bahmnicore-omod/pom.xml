@@ -19,7 +19,7 @@
         <gem.home>${basedir}/.rubygems</gem.home>
         <gem.path>${basedir}/.rubygems</gem.path>
         <uiframeworkVersion>3.3.1</uiframeworkVersion>
-        <bedManagementVersion>5.8.0</bedManagementVersion>
+        <bedManagementVersion>5.8.1</bedManagementVersion>
     </properties>
 
     <dependencies>
