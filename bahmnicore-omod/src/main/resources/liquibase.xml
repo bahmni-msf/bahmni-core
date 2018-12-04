@@ -4254,4 +4254,52 @@
             INSERT INTO role_role(child_role, parent_role) VALUES ('Appointments:FullAccess', 'Appointments:ManageAppointments');
         </sql>
     </changeSet>
+    <changeSet id="201710061810" author="Sneha Bagri">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM global_property where property = 'patientSearch.debounceSearchApi'
+            </sqlCheck>
+        </preConditions>
+        <comment>Add configuration to feature toggle patient search api debounce</comment>
+        <sql>
+            insert into global_property (`property`, `property_value`, `description`, `uuid`)
+            values ('patientSearch.debounceSearchApi',
+            'true',
+            'feature toggle patient search api debounce',
+            uuid()
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="201710061820" author="Sneha Bagri">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM global_property where property = 'patientSearch.debounceInterval'
+            </sqlCheck>
+        </preConditions>
+        <comment>Add configuration to set patient search api debounce interval</comment>
+        <sql>
+            insert into global_property (`property`, `property_value`, `description`, `uuid`)
+            values ('patientSearch.debounceInterval',
+            '2000',
+            'set patient search api debounce interval',
+            uuid()
+            );
+        </sql>
+    </changeSet>
+    <changeSet id="201710061830" author="Sneha Bagri">
+        <preConditions onFail="MARK_RAN">
+            <sqlCheck expectedResult="0">
+                SELECT COUNT(*) FROM global_property where property = 'patientSearch.runInSerialMode'
+            </sqlCheck>
+        </preConditions>
+        <comment>Add configuration to feature toggle patient search api serial run</comment>
+        <sql>
+            insert into global_property (`property`, `property_value`, `description`, `uuid`)
+            values ('patientSearch.runInSerialMode',
+            'true',
+            'feature toggle patient search api serial run',
+            uuid()
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>
