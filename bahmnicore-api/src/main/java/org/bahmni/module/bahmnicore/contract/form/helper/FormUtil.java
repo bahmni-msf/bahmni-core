@@ -16,5 +16,10 @@ public class FormUtil {
         }
         return isNotBlank(formVersion) ? Integer.parseInt(formVersion) : 0;
     }
+
+    public static String getFormNameAlongWithVersion(String formFieldPath) {
+        return isNotBlank(formFieldPath) && formFieldPath.contains("/")
+                ? formFieldPath.substring(0, formFieldPath.indexOf("/")) : "";
+    }
 }
 
