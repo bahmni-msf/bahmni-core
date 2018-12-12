@@ -194,7 +194,6 @@ public class BahmniFormBuilderObsToTabularViewMapperTest {
 
         pivotTable.setRows(bahmniFormBuilderObsToTabularViewMapper.getNonEmptyRows(pivotTable.getRows(),
                 groupByConceptName));
-
         List<PivotRow> rows = pivotTable.getRows();
         assertEquals(1, rows.size());
         Map<String, ArrayList<BahmniObservation>> firstRowColumns = rows.get(0).getColumns();
@@ -251,3 +250,4 @@ public class BahmniFormBuilderObsToTabularViewMapperTest {
                 containsInAnyOrder(multiSelectFirstObs, multiSelectSecondObs));
     }
 }
+
