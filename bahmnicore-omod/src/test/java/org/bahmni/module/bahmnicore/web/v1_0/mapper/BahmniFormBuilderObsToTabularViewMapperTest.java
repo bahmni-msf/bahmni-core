@@ -153,7 +153,7 @@ public class BahmniFormBuilderObsToTabularViewMapperTest {
     }
 
     @Test
-    public void shouldReturnPivotTableWithPivotRowsIfAtLeastOneObservationAvailableOtherThanGroupByConceptObs() {
+    public void shouldGetPivotTableWithOnlyNonNullRows() {
         String groupByConceptName = "id";
         String weightConceptName = "weight";
 
@@ -188,9 +188,13 @@ public class BahmniFormBuilderObsToTabularViewMapperTest {
 
         PivotTable pivotTable = bahmniFormBuilderObsToTabularViewMapper.constructTable(concepts, bahmniObservations,
                 groupByConceptName);
-
         assertEquals(2, pivotTable.getHeaders().size());
         assertThat(pivotTable.getHeaders(), containsInAnyOrder(groupByConcept, weightConcept));
+        assertEquals(2, pivotTable.getRows().size());
+
+        pivotTable.setRows(bahmniFormBuilderObsToTabularViewMapper.getNonEmptyRows(pivotTable.getRows(),
+                groupByConceptName));
+
         List<PivotRow> rows = pivotTable.getRows();
         assertEquals(1, rows.size());
         Map<String, ArrayList<BahmniObservation>> firstRowColumns = rows.get(0).getColumns();
