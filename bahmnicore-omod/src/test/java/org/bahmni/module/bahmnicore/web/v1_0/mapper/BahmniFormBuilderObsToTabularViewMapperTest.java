@@ -250,4 +250,3 @@ public class BahmniFormBuilderObsToTabularViewMapperTest {
                 containsInAnyOrder(multiSelectFirstObs, multiSelectSecondObs));
     }
 }
-
