@@ -4,16 +4,19 @@ import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObser
 import org.openmrs.module.bahmniemrapi.pivottable.contract.PivotRow;
 import org.openmrs.module.bahmniemrapi.pivottable.contract.PivotTable;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.bahmni.module.bahmnicore.contract.form.helper.FormUtil.getFormNameAlongWithVersion;
 
+@Component
 public class BahmniFormBuilderObsToTabularViewMapper extends BahmniObservationsToTabularViewMapper {
     public PivotTable constructTable(Set<EncounterTransaction.Concept> concepts,
                                      Collection<BahmniObservation> bahmniObservations, String groupByConcept) {
@@ -28,6 +31,10 @@ public class BahmniFormBuilderObsToTabularViewMapper extends BahmniObservationsT
         return pivotTable;
     }
 
+    public List<PivotRow> getNonEmptyRows(List<PivotRow> rows, String groupByConceptName){
+        return rows.stream().filter(row -> isNonNullRow(groupByConceptName, row)).collect(Collectors.toList());
+    }
+
     private List<PivotRow> constructRows(Set<EncounterTransaction.Concept> concepts,
                                          Collection<BahmniObservation> bahmniObservations, String groupByConceptName) {
         Map<String, List<BahmniObservation>> rowsMapper = getRowsMapper(bahmniObservations);
@@ -35,24 +42,19 @@ public class BahmniFormBuilderObsToTabularViewMapper extends BahmniObservationsT
         rowsMapper.forEach((rowIdentifier, rowObservations) -> {
             PivotRow row = new PivotRow();
             rowObservations.forEach(observation -> addColumn(concepts, row, observation));
-            if (isValidRow(groupByConceptName, row)) {
+            if (row.getColumns().containsKey(groupByConceptName)) {
                 rows.add(row);
             }
         });
         return rows;
     }
 
-    private boolean isValidRow(String groupByConceptName, PivotRow row) {
-        return row.getColumns().containsKey(groupByConceptName) && isNonNullRow(groupByConceptName, row);
-    }
-
-
     private Map<String, List<BahmniObservation>> getRowsMapper(Collection<BahmniObservation> bahmniObservations) {
-        Map<String, List<BahmniObservation>> rowsMapper = new HashMap<>();
+        Map<String, List<BahmniObservation>> rowsMapper = new LinkedHashMap<>();
         bahmniObservations.forEach(bahmniObservation -> {
             String rowIdentifier = getRowIdentifier(bahmniObservation);
             List<BahmniObservation> bahmniObs;
-            bahmniObs = rowsMapper.containsKey(rowIdentifier) ? rowsMapper.remove(rowIdentifier) : new ArrayList<>();
+            bahmniObs = rowsMapper.containsKey(rowIdentifier) ? rowsMapper.get(rowIdentifier) : new ArrayList<>();
             bahmniObs.add(bahmniObservation);
             rowsMapper.put(rowIdentifier, bahmniObs);
         });
