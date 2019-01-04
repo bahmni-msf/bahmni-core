@@ -46,6 +46,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -142,14 +144,30 @@ public class ObsToObsTabularFlowSheetControllerTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenEitherConceptSetOrConceptNamesAndFormNamesIsNotGiven() throws ParseException {
-        exception.expect(RuntimeException.class);
-        exception.expectMessage(containsString("Either ConceptSet or FormNames and ConceptNames is required"));
+    public void shouldReturnEmptyPivotTableWhenFormNamesAreNotGiven() throws ParseException {
 
-        obsToObsPivotTableController.constructPivotTableFor(null, null,
-                null, null, null, null,
-                null, null, null, null, null,
-                null, null);
+        PivotTable pivotTable = obsToObsPivotTableController.constructPivotTableFor(any(), any(), any(), any(), any(),
+                singletonList(""), any(), any(), any(), any(), any(), any(), null);
+
+        assertEquals(0, pivotTable.getHeaders().size());
+    }
+
+    @Test
+    public void shouldReturnEmptyPivotTableWhenConceptNamesAreNotGiven() throws ParseException {
+
+        PivotTable pivotTable = obsToObsPivotTableController.constructPivotTableFor(any(), any(), any(), any(), any(),
+                null, any(), any(), any(), any(), any(), any(), singletonList(""));
+
+        assertEquals(0, pivotTable.getHeaders().size());
+    }
+
+    @Test
+    public void shouldReturnEmptyPivotTableWhenFormNamesAreEmpty() throws ParseException {
+
+        PivotTable pivotTable = obsToObsPivotTableController.constructPivotTableFor(any(), any(), any(), any(), any(),
+                null, any(), any(), any(), any(), any(), any(), emptyList());
+
+        assertEquals(0, pivotTable.getHeaders().size());
     }
 
     @Test
@@ -184,12 +202,12 @@ public class ObsToObsTabularFlowSheetControllerTest {
         Concept member1 = new ConceptBuilder().withName("Member1").withSet(false).withDataType("Numeric").build();
         Concept groupByConcept = new ConceptBuilder().withName("GroupByConcept").withSet(false).withDataType("Numeric").build();
         String groupByConceptName = "GroupByConcept";
-        List<String> formNames = Collections.singletonList("Form1");
+        List<String> formNames = singletonList("Form1");
 
         ArrayList<BahmniObservation> bahmniObservations = new ArrayList<>();
         when(bahmniObsService.getObsForFormBuilderForms("patientUuid", formNames, 1, null, null, null)).thenReturn(bahmniObservations);
 
-        List<String> conceptNames = new ArrayList<>(Collections.singletonList("Member1"));
+        List<String> conceptNames = new ArrayList<>(singletonList("Member1"));
         List<Concept> concepts = Arrays.asList(member1, groupByConcept);
         when(bahmniConceptService.getConceptsByFullySpecifiedName(conceptNames)).thenReturn(concepts);
 
@@ -203,7 +221,7 @@ public class ObsToObsTabularFlowSheetControllerTest {
                 null, null, null, null, formNames);
 
         verify(bahmniObsService).getObsForFormBuilderForms("patientUuid", formNames, 1, null, null, null);
-        conceptNames.addAll(Collections.singletonList(groupByConceptName));
+        conceptNames.addAll(singletonList(groupByConceptName));
         verify(bahmniConceptService).getConceptsByFullySpecifiedName(conceptNames);
         verify(bahmniFormBuilderObsToTabularViewMapper).constructTable(Matchers.<Set<EncounterTransaction.Concept>>any(),
                 eq(bahmniObservations), eq(groupByConceptName));

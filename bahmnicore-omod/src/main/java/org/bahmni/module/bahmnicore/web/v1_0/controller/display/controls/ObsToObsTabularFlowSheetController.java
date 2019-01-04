@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.nonNull;
+import static java.util.Objects.isNull;
 
 @Controller
 @RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/bahmnicore/observations/flowSheet")
@@ -95,13 +95,10 @@ public class ObsToObsTabularFlowSheetController {
         if (conceptSet != null) {
             pivotTable = getPivotTableByConceptSet(patientUuid, numberOfVisits, conceptSet, groupByConcept,
                     conceptNames, initialCount, latestCount, startDate, endDate, patientProgramUuid);
-        } else if (nonNull(conceptNames) && nonNull(formNames) && formNames.size() > 0) {
+        } else {
             pivotTable = getPivotTableByFormNames(patientUuid, numberOfVisits, groupByConcept, conceptNames,
                     initialCount, latestCount, startDate, endDate, patientProgramUuid, formNames);
-        } else {
-            throw new RuntimeException("Either ConceptSet or FormNames and ConceptNames is required");
         }
-
         setNormalRangeAndUnits(pivotTable.getHeaders());
 
         if(orderByConcept != null) {
@@ -148,6 +145,10 @@ public class ObsToObsTabularFlowSheetController {
                                                 List<String> conceptNames, Integer initialCount, Integer latestCount,
                                                 Date startDate, Date endDate, String patientProgramUuid,
                                                 List<String> formNames) {
+        if (isNull(conceptNames) || isNull(formNames) || formNames.size() < 1) {
+            logger.warn("Form name(s) and concept name(s) are required for forms 2.0");
+            return new PivotTable();
+        }
         Collection<BahmniObservation> bahmniObservations = bahmniObsService.getObsForFormBuilderForms(patientUuid,
                 formNames, numberOfVisits, startDate, endDate, patientProgramUuid);
         conceptNames.add(groupByConceptName);
