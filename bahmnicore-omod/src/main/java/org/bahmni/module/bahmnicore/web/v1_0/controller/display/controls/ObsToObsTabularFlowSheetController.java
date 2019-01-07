@@ -153,7 +153,7 @@ public class ObsToObsTabularFlowSheetController {
         conceptNames.add(groupByConceptName);
         Set<EncounterTransaction.Concept> leafConcepts =
                 bahmniConceptService.getConceptsByFullySpecifiedName(conceptNames)
-                        .stream().map(concept -> conceptMapper.map(concept)).collect(Collectors.toSet());
+                        .stream().map(concept -> conceptMapper.map(concept)).collect(Collectors.toCollection(LinkedHashSet::new));
         PivotTable pivotTable = bahmniFormBuilderObsToTabularViewMapper.constructTable(leafConcepts,
                 bahmniObservations, groupByConceptName);
         List<PivotRow> rows = (List<PivotRow>) filterDataByCount(pivotTable.getRows(), initialCount, latestCount);
