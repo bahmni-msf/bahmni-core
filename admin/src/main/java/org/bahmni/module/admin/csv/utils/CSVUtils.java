@@ -1,6 +1,7 @@
 package org.bahmni.module.admin.csv.utils;
 
 import org.bahmni.csv.KeyValue;
+import org.bahmni.module.admin.csv.models.EncounterRow;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -43,4 +44,7 @@ public class CSVUtils {
         return getDateFromString(dateString);
     }
 
+    public static List<KeyValue> getNonForm2ObsRows(EncounterRow encounterRow) {
+        return null;
+    }
 }

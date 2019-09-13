@@ -31,6 +31,7 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -50,6 +51,7 @@ public class ObservationMapperTest {
 
     private Concept weightConcept;
     private ConceptDatatype conceptDatatype;
+    private CSVObservationHelper csvObservationHelper;
 
     @Before
     public void setUp() throws Exception {
@@ -57,6 +59,7 @@ public class ObservationMapperTest {
         encounterRow = new EncounterRow();
         encounterRow.encounterDateTime = "2019-09-11";
 
+        csvObservationHelper = mock(CSVObservationHelper.class);
         Concept bmiDataConcept = mock(Concept.class);
         ConceptName bmiDataConceptName = mock(ConceptName.class);
         when(bmiDataConceptName.getName()).thenReturn("BMI Data");
