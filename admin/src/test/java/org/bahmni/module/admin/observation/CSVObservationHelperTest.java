@@ -17,10 +17,12 @@ import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static org.bahmni.module.admin.observation.CSVObservationHelper.getLastItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -293,5 +295,20 @@ public class CSVObservationHelperTest {
         CSVObservationHelper csvObservationHelper = new CSVObservationHelper(conceptService);
 
         assertTrue(csvObservationHelper.isForm2Type(csvObservation));
+    }
+
+    @Test
+    public void shouldReturnLastItem() {
+        final List<Object> emptyList = Arrays.asList("Vitals", "Height");
+
+        assertEquals("Height", getLastItem(emptyList));
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenEmptyItemsAreSent() {
+        exception.expectMessage("Empty items");
+
+        getLastItem(new ArrayList<>());
+
     }
 }
