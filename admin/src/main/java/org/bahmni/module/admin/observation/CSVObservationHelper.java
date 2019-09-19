@@ -61,7 +61,7 @@ public class CSVObservationHelper {
     public void verifyNumericConceptValue(KeyValue obsRow, List<String> conceptNames) {
         String lastConceptName = getLastItem(conceptNames);
         Concept lastConcept = conceptService.getConceptByName(lastConceptName);
-        if (lastConcept.isNumeric()) {
+        if (lastConcept != null && lastConcept.isNumeric()) {
             ConceptNumeric cn = (ConceptNumeric) lastConcept;
             if (!cn.getAllowDecimal() && obsRow.getValue().contains(".")) {
                 throw new APIException("Decimal is not allowed for " + cn.getName() + " concept");
