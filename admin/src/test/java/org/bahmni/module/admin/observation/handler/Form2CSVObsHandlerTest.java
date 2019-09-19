@@ -5,7 +5,10 @@ import org.bahmni.module.admin.csv.models.EncounterRow;
 import org.bahmni.module.admin.observation.CSVObservationHelper;
 import org.bahmni.module.service.FormFieldPathService;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.openmrs.api.APIException;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 
 import java.text.ParseException;
@@ -14,7 +17,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
@@ -26,10 +31,10 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class Form2CSVObsHandlerTest {
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
     private Form2CSVObsHandler form2CSVObsHandler;
-
     private CSVObservationHelper csvObservationHelper;
-
     private FormFieldPathService formFieldPathService;
 
     @Before
@@ -89,5 +94,24 @@ public class Form2CSVObsHandlerTest {
         verify(csvObservationHelper).verifyNumericConceptValue(form2CSVObservation, headerParts);
         verify(csvObservationHelper).createObservations(anyListOf(EncounterTransaction.Observation.class),
                 any(Date.class), any(KeyValue.class), anyListOf(String.class));
+    }
+
+    @Test
+    public void shouldThrowAPIExceptionIfNoConceptProvidedWithCSVHeader() throws ParseException {
+        final KeyValue form2CSVObservation = new KeyValue("form2.Vitals", "100");
+        final EncounterRow encounterRow = new EncounterRow();
+        encounterRow.obsRows = singletonList(form2CSVObservation);
+        encounterRow.encounterDateTime = "2019-11-11";
+
+        when(csvObservationHelper.isForm2Type(form2CSVObservation)).thenReturn(true);
+        final List<String> headerParts = new ArrayList<>(Arrays.asList("form2", "Vitals"));
+        when(csvObservationHelper.getCSVHeaderParts(form2CSVObservation)).thenReturn(headerParts);
+
+        form2CSVObsHandler = new Form2CSVObsHandler(csvObservationHelper, formFieldPathService);
+
+        expectedException.expect(APIException.class);
+        expectedException.expectMessage(format("No concepts found in %s", form2CSVObservation.getKey()));
+
+        form2CSVObsHandler.handle(encounterRow);
     }
 }
