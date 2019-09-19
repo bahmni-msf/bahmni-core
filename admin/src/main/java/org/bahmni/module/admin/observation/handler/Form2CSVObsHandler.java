@@ -4,6 +4,7 @@ import org.bahmni.csv.KeyValue;
 import org.bahmni.module.admin.csv.models.EncounterRow;
 import org.bahmni.module.admin.observation.CSVObservationHelper;
 import org.bahmni.module.service.FormFieldPathService;
+import org.openmrs.api.APIException;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.bahmni.module.admin.observation.CSVObservationHelper.getLastItem;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -43,12 +45,19 @@ public class Form2CSVObsHandler implements CSVObsHandler {
         List<KeyValue> form2CSVObservations = getRelatedCSVObs(encounterRow);
         for (KeyValue form2CSVObservation : form2CSVObservations) {
             final List<String> form2CSVHeaderParts = getCSVHeaderPartsByIgnoringForm2KeyWord(form2CSVObservation);
+            verifyCSVHeaderHasConcepts(form2CSVObservation, form2CSVHeaderParts);
             csvObservationHelper.verifyNumericConceptValue(form2CSVObservation, form2CSVHeaderParts);
             csvObservationHelper.createObservations(form2Observations, encounterRow.getEncounterDate(),
                     form2CSVObservation, getConceptNames(form2CSVHeaderParts));
             setFormNamespaceAndFieldPath(form2Observations, form2CSVHeaderParts);
         }
         return form2Observations;
+    }
+
+    private void verifyCSVHeaderHasConcepts(KeyValue form2CSVObservation, List<String> form2CSVHeaderParts) {
+        if (form2CSVHeaderParts.size() <= 1) {
+            throw new APIException(format("No concepts found in %s", form2CSVObservation.getKey()));
+        }
     }
 
     private void setFormNamespaceAndFieldPath(List<EncounterTransaction.Observation> form2Observations, List<String> form2CSVHeaderParts) {
