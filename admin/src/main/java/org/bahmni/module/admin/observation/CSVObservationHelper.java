@@ -14,6 +14,7 @@ import org.openmrs.module.emrapi.encounter.exception.ConceptNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.security.InvalidParameterException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,16 +22,25 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class CSVObservationHelper {
     private final ConceptCache conceptCache;
     private final ConceptService conceptService;
+    private final String FORM2_TYPE = "form2";
 
     @Autowired
     CSVObservationHelper(ConceptService conceptService) {
         this.conceptCache = new ConceptCache(conceptService);
         this.conceptService = conceptService;
+    }
+
+    public static <T> T getLastItem(List<T> items) {
+        if (isEmpty(items)) {
+            throw new InvalidParameterException("Empty items");
+        }
+        return items.get(items.size() - 1);
     }
 
     protected Concept getConcept(String conceptName) {
@@ -49,7 +59,7 @@ public class CSVObservationHelper {
     }
 
     public void verifyNumericConceptValue(KeyValue obsRow, List<String> conceptNames) {
-        String lastConceptName = conceptNames.get(conceptNames.size() - 1);
+        String lastConceptName = getLastItem(conceptNames);
         Concept lastConcept = conceptService.getConceptByName(lastConceptName);
         if (lastConcept.isNumeric()) {
             ConceptNumeric cn = (ConceptNumeric) lastConcept;
@@ -125,7 +135,7 @@ public class CSVObservationHelper {
         String key = obsRow.getKey();
         if (StringUtils.isNotBlank(key)) {
             String[] csvHeaderParts = key.split("\\.");
-            return csvHeaderParts[0].equalsIgnoreCase("form2");
+            return csvHeaderParts[0].equalsIgnoreCase(FORM2_TYPE);
         }
         return false;
     }
