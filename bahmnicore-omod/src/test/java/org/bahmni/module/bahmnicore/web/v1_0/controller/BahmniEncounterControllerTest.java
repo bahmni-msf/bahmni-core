@@ -26,6 +26,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -53,21 +54,29 @@ public class BahmniEncounterControllerTest {
     }
 
     @Test
-    public void returnsMultipleEncounterTransactionsIfExists() throws Exception {
+    public void returnsMultipleEncounterTransactionsIfExistsAndCallMakeComplexDataNull() throws Exception {
         EncounterTransaction et1 = new EncounterTransaction();
         et1.setEncounterUuid("et1");
 
         BahmniEncounterSearchParameters encounterSearchParameters = new BahmniEncounterSearchParameters();
         encounterSearchParameters.setIncludeAll(false);
+        encounterSearchParameters.setLoadComplexData(false);
 
+        BahmniEncounterTransaction actualBahmniEncounterTransaction = new BahmniEncounterTransaction(et1);
         when(bahmniEncounterTransactionService.find(encounterSearchParameters)).thenReturn(et1);
-        when(bahmniEncounterTransactionMapper.map(et1, false)).thenReturn(new BahmniEncounterTransaction(et1));
+        when(bahmniEncounterTransactionMapper.map(et1, false)).thenReturn(actualBahmniEncounterTransaction);
+        Set<BahmniObservation> observations = Collections.singleton(mock(BahmniObservation.class));
+        actualBahmniEncounterTransaction.setObservations(observations);
+        PowerMockito.spy(ObsComplexDataUtil.class);
+        PowerMockito.doNothing().when(ObsComplexDataUtil.class, "makeComplexDataNull", observations, encounterSearchParameters.getLoadComplexData());
 
         bahmniEncounterController = new BahmniEncounterController(null, emrEncounterService, null, bahmniEncounterTransactionService, bahmniEncounterTransactionMapper);
 
         BahmniEncounterTransaction bahmniEncounterTransaction = bahmniEncounterController.find(encounterSearchParameters);
 
         assertEquals(et1.getEncounterUuid(), bahmniEncounterTransaction.getEncounterUuid());
+        verifyStatic();
+        ObsComplexDataUtil.makeComplexDataNull(observations, false);
     }
 
     @Test
