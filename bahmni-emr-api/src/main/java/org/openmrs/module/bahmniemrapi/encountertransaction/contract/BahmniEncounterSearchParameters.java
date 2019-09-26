@@ -7,6 +7,7 @@ import java.util.List;
 
 public class BahmniEncounterSearchParameters extends EncounterSearchParameters {
     private String patientProgramUuid;
+    private Boolean loadComplexData;
 
     public BahmniEncounterSearchParameters() {
         super();
@@ -23,5 +24,13 @@ public class BahmniEncounterSearchParameters extends EncounterSearchParameters {
 
     public void setPatientProgramUuid(String patientProgramUuid) {
         this.patientProgramUuid = patientProgramUuid;
+    }
+
+    public Boolean getLoadComplexData() {
+        return loadComplexData;
+    }
+
+    public void setLoadComplexData(Boolean loadComplexData) {
+        this.loadComplexData = loadComplexData;
     }
 }
