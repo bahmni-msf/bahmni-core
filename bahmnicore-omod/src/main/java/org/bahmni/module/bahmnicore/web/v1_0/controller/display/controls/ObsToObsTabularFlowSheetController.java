@@ -9,6 +9,7 @@ import org.bahmni.module.bahmnicore.service.BahmniObsService;
 import org.bahmni.module.bahmnicore.util.BahmniDateUtil;
 import org.bahmni.module.bahmnicore.web.v1_0.mapper.BahmniFormBuilderObsToTabularViewMapper;
 import org.bahmni.module.bahmnicore.web.v1_0.mapper.BahmniObservationsToTabularViewMapper;
+import org.bahmni.module.bahmnicore.web.v1_0.utils.ObsComplexDataUtil;
 import org.openmrs.Concept;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.bahmniemrapi.drugogram.contract.BaseTableExtension;
@@ -87,7 +88,8 @@ public class ObsToObsTabularFlowSheetController {
             @RequestParam(value = "startDate", required = false) String startDateStr,
             @RequestParam(value = "endDate", required = false) String endDateStr,
             @RequestParam(value = "enrollment", required = false) String patientProgramUuid,
-            @RequestParam(value = "formNames", required = false) List<String> formNames) throws ParseException {
+            @RequestParam(value = "formNames", required = false) List<String> formNames,
+            @RequestParam(value = "loadComplexData", required = false) Boolean loadComplexData) throws ParseException {
 
         Date startDate = BahmniDateUtil.convertToDate(startDateStr, BahmniDateUtil.DateFormatType.UTC);
         Date endDate = BahmniDateUtil.convertToDate(endDateStr, BahmniDateUtil.DateFormatType.UTC);
@@ -95,10 +97,10 @@ public class ObsToObsTabularFlowSheetController {
         PivotTable pivotTable;
         if (conceptSet != null) {
             pivotTable = getPivotTableByConceptSet(patientUuid, numberOfVisits, conceptSet, groupByConcept,
-                    conceptNames, initialCount, latestCount, startDate, endDate, patientProgramUuid);
+                    conceptNames, initialCount, latestCount, startDate, endDate, patientProgramUuid, loadComplexData);
         } else {
             pivotTable = getPivotTableByFormNames(patientUuid, numberOfVisits, groupByConcept, conceptNames,
-                    initialCount, latestCount, startDate, endDate, patientProgramUuid, formNames);
+                    initialCount, latestCount, startDate, endDate, patientProgramUuid, formNames, loadComplexData);
         }
         setNormalRangeAndUnits(pivotTable.getHeaders());
 
@@ -118,7 +120,7 @@ public class ObsToObsTabularFlowSheetController {
     private PivotTable getPivotTableByConceptSet(String patientUuid, Integer numberOfVisits, String conceptSet,
                                                  String groupByConcept, List<String> conceptNames,
                                                  Integer initialCount, Integer latestCount, Date startDate,
-                                                 Date endDate, String patientProgramUuid) {
+                                                 Date endDate, String patientProgramUuid, Boolean loadComplexData) {
         Concept rootConcept = conceptService.getConceptByName(conceptSet);
         Concept childConcept = conceptService.getConceptByName(groupByConcept);
         validate(conceptSet, groupByConcept, rootConcept, childConcept);
@@ -139,19 +141,21 @@ public class ObsToObsTabularFlowSheetController {
             leafConcepts.add(conceptMapper.map(childConcept));
         }
         bahmniObservations = filterDataByCount(bahmniObservations, initialCount, latestCount);
+        ObsComplexDataUtil.makeComplexDataNull(bahmniObservations, loadComplexData);
         return bahmniObservationsToTabularViewMapper.constructTable(leafConcepts, bahmniObservations, groupByConcept);
     }
 
     private PivotTable getPivotTableByFormNames(String patientUuid, Integer numberOfVisits, String groupByConceptName,
                                                 List<String> conceptNames, Integer initialCount, Integer latestCount,
                                                 Date startDate, Date endDate, String patientProgramUuid,
-                                                List<String> formNames) {
+                                                List<String> formNames, Boolean loadComplexData) {
         if (isNull(conceptNames) || isNull(formNames) || formNames.size() < 1) {
             logger.warn("Form name(s) and concept name(s) are required for forms 2.0");
             return new PivotTable();
         }
         Collection<BahmniObservation> bahmniObservations = bahmniObsService.getObsForFormBuilderForms(patientUuid,
                 formNames, numberOfVisits, startDate, endDate, patientProgramUuid);
+        ObsComplexDataUtil.makeComplexDataNull(bahmniObservations, loadComplexData);
         conceptNames.add(groupByConceptName);
         Set<EncounterTransaction.Concept> leafConcepts =
                 bahmniConceptService.getConceptsByFullySpecifiedName(conceptNames)

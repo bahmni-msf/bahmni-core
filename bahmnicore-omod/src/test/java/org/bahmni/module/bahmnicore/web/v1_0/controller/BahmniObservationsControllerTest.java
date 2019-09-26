@@ -3,7 +3,6 @@ package org.bahmni.module.bahmnicore.web.v1_0.controller;
 import org.bahmni.module.bahmnicore.extensions.BahmniExtensions;
 import org.bahmni.module.bahmnicore.service.BahmniObsService;
 import org.bahmni.module.bahmnicore.web.v1_0.controller.display.controls.BahmniObservationsController;
-import org.bahmni.module.bahmnicore.web.v1_0.mapper.ComplexDataMapper;
 import org.bahmni.test.builder.VisitBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +24,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -42,8 +40,6 @@ public class BahmniObservationsControllerTest {
     private VisitService visitService;
     @Mock
     private BahmniExtensions bahmniExtensions;
-    @Mock
-    private ComplexDataMapper complexDataMapper;
 
     private Visit visit;
     private Concept concept;
@@ -54,7 +50,7 @@ public class BahmniObservationsControllerTest {
         MockitoAnnotations.initMocks(this);
         visit = new VisitBuilder().build();
         concept = new Concept();
-        bahmniObservationsController = new BahmniObservationsController(bahmniObsService, conceptService, visitService, bahmniExtensions, complexDataMapper);
+        bahmniObservationsController = new BahmniObservationsController(bahmniObsService, conceptService, visitService, bahmniExtensions);
         when(visitService.getVisitByUuid("visitId")).thenReturn(visit);
         when(conceptService.getConceptByName("Weight")).thenReturn(concept);
     }
@@ -70,7 +66,6 @@ public class BahmniObservationsControllerTest {
         Collection<BahmniObservation> bahmniObservations = bahmniObservationsController.get("visitId", "latest", Arrays.asList("Weight"), null, true, null);
 
         verify(bahmniObsService, never()).getInitialObsByVisit(visit, Arrays.asList(concept), null, false);
-        verify(complexDataMapper, never()).getNullifiedComplexData(complexData);
         assertEquals(1, bahmniObservations.size());
     }
 
@@ -87,7 +82,6 @@ public class BahmniObservationsControllerTest {
 
         Collection<BahmniObservation> bahmniObservations = bahmniObservationsController.get("visitId", "initial", Arrays.asList("Weight"), null, true, true);
 
-        verify(complexDataMapper, never()).getNullifiedComplexData(any(ComplexData.class));
         assertEquals(1, bahmniObservations.size());
     }
 
@@ -103,7 +97,6 @@ public class BahmniObservationsControllerTest {
         verify(bahmniObsService, never()).getLatestObsByVisit(visit, Arrays.asList(concept), null, false);
         verify(bahmniObsService, never()).getInitialObsByVisit(visit, Arrays.asList(concept), null, false);
         verify(bahmniObsService, times(1)).getObservationForVisit("visitId", conceptNames, obsIgnoreList, true, null);
-        verify(complexDataMapper).getNullifiedComplexData(any(ComplexData.class));
 
         assertEquals(1, bahmniObservations.size());
     }
@@ -120,7 +113,6 @@ public class BahmniObservationsControllerTest {
         Collection<BahmniObservation> actualResult = bahmniObservationsController.get(encounterUuid, conceptNames, true);
 
         verify(bahmniObsService, times(1)).getObservationsForEncounter(encounterUuid, conceptNames);
-        verify(complexDataMapper, never()).getNullifiedComplexData(any(ComplexData.class));
         assertEquals(1, actualResult.size());
         assertEquals(obsUuid, actualResult.iterator().next().getUuid());
     }
@@ -137,7 +129,6 @@ public class BahmniObservationsControllerTest {
         bahmniObservationsController.get(patientProgramUuid, conceptNames, null, null, false);
 
         verify(bahmniObsService, times(1)).getObservationsForPatientProgram(patientProgramUuid, conceptNames, null);
-        verify(complexDataMapper).getNullifiedComplexData(any(ComplexData.class));
     }
 
     @Test
@@ -149,7 +140,6 @@ public class BahmniObservationsControllerTest {
         bahmniObservationsController.get(patientProgramUuid, null, null, null, true);
 
         verify(bahmniObsService, times(0)).getObservationsForPatientProgram(patientProgramUuid, conceptNames, null);
-        verify(complexDataMapper, never()).getNullifiedComplexData(any(ComplexData.class));
     }
 
     @Test
@@ -165,7 +155,6 @@ public class BahmniObservationsControllerTest {
         bahmniObservationsController.get(patientProgramUuid, conceptNames, scope, ignoreObsList, false);
 
         verify(bahmniObsService, times(1)).getLatestObservationsForPatientProgram(patientProgramUuid, conceptNames, ignoreObsList);
-        verify(complexDataMapper).getNullifiedComplexData(any(ComplexData.class));
     }
 
     @Test
@@ -179,7 +168,6 @@ public class BahmniObservationsControllerTest {
         bahmniObservationsController.get(patientProgramUuid, conceptNames, scope, ignoreObsList, true);
 
         verify(bahmniObsService, times(1)).getInitialObservationsForPatientProgram(patientProgramUuid, conceptNames, ignoreObsList);
-        verify(complexDataMapper, never()).getNullifiedComplexData(any(ComplexData.class));
     }
 
     @Test
@@ -191,7 +179,6 @@ public class BahmniObservationsControllerTest {
         BahmniObservation actualBahmniObservation = bahmniObservationsController.get(observationUuid, "", false);
 
         verify(bahmniObsService, times(1)).getBahmniObservationByUuid("observationUuid");
-        verify(complexDataMapper).getNullifiedComplexData(any(ComplexData.class));
         assertNotNull("BahmniObservation should not be null", actualBahmniObservation);
         assertEquals(expectedBahmniObservation, actualBahmniObservation);
     }
