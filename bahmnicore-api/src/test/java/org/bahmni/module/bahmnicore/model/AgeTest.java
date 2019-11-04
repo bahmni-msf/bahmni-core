@@ -1,6 +1,9 @@
 package org.bahmni.module.bahmnicore.model;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Test;
 import org.openmrs.module.webservices.rest.SimpleObject;
 
@@ -20,10 +23,15 @@ public class AgeTest {
 
     @Test
     public void shouldCalculateAgeFromDateOfBirth() {
-        Date birthDate = new LocalDate(1990, 6, 15).toDate();
-        Date today = new LocalDate(2013, 12, 5).toDate();
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("MMM yyyy dd");
 
-        Age age = Age.fromDateOfBirth(birthDate, today);
+        String birthDate = "June 1990 15";
+        String today = "Dec 2013 05";
+
+        DateTime formattedBirthDate = formatter.parseDateTime(birthDate);
+        DateTime formattedTodayDate = formatter.parseDateTime(today);
+
+        Age age = Age.fromDateOfBirth(formattedBirthDate.toDate(), formattedTodayDate.toDate());
 
         assertEquals(new Age(23, 5, 20), age);
     }
