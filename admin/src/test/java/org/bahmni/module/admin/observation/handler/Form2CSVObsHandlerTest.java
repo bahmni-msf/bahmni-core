@@ -27,6 +27,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class Form2CSVObsHandlerTest {
@@ -93,6 +94,28 @@ public class Form2CSVObsHandlerTest {
         verify(csvObservationHelper).getCSVHeaderParts(form2CSVObservation);
         verify(csvObservationHelper).verifyNumericConceptValue(form2CSVObservation, headerParts);
         verify(csvObservationHelper).createObservations(anyListOf(EncounterTransaction.Observation.class),
+                any(Date.class), any(KeyValue.class), anyListOf(String.class));
+    }
+
+    @Test
+    public void shouldVerifyCreateObservationIsNotCalledWhenAnEmptyValueIsGiven() throws ParseException {
+        final KeyValue form1CSVObservation = new KeyValue("Vitals.Height", "100");
+        final KeyValue form2CSVObservation = new KeyValue("form2.Vitals.Height", "");
+
+        final EncounterRow encounterRow = new EncounterRow();
+        encounterRow.obsRows = asList(form1CSVObservation, form2CSVObservation);
+        encounterRow.encounterDateTime = "2019-11-11";
+
+        when(csvObservationHelper.isForm2Type(form1CSVObservation)).thenReturn(false);
+        when(csvObservationHelper.isForm2Type(form2CSVObservation)).thenReturn(true);
+
+        form2CSVObsHandler = new Form2CSVObsHandler(csvObservationHelper, formFieldPathService);
+
+        form2CSVObsHandler.handle(encounterRow);
+
+        verify(csvObservationHelper).isForm2Type(form1CSVObservation);
+        verify(csvObservationHelper).isForm2Type(form2CSVObservation);
+        verify(csvObservationHelper, never()).createObservations(anyListOf(EncounterTransaction.Observation.class),
                 any(Date.class), any(KeyValue.class), anyListOf(String.class));
     }
 

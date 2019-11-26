@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.bahmni.module.admin.observation.CSVObservationHelper.getLastItem;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -44,12 +45,14 @@ public class Form2CSVObsHandler implements CSVObsHandler {
         List<EncounterTransaction.Observation> form2Observations = new ArrayList<>();
         List<KeyValue> form2CSVObservations = getRelatedCSVObs(encounterRow);
         for (KeyValue form2CSVObservation : form2CSVObservations) {
-            final List<String> form2CSVHeaderParts = getCSVHeaderPartsByIgnoringForm2KeyWord(form2CSVObservation);
-            verifyCSVHeaderHasConcepts(form2CSVObservation, form2CSVHeaderParts);
-            csvObservationHelper.verifyNumericConceptValue(form2CSVObservation, form2CSVHeaderParts);
-            csvObservationHelper.createObservations(form2Observations, encounterRow.getEncounterDate(),
-                    form2CSVObservation, getConceptNames(form2CSVHeaderParts));
-            setFormNamespaceAndFieldPath(form2Observations, form2CSVHeaderParts);
+            if (isNotBlank(form2CSVObservation.getValue())) {
+                final List<String> form2CSVHeaderParts = getCSVHeaderPartsByIgnoringForm2KeyWord(form2CSVObservation);
+                verifyCSVHeaderHasConcepts(form2CSVObservation, form2CSVHeaderParts);
+                csvObservationHelper.verifyNumericConceptValue(form2CSVObservation, form2CSVHeaderParts);
+                csvObservationHelper.createObservations(form2Observations, encounterRow.getEncounterDate(),
+                        form2CSVObservation, getConceptNames(form2CSVHeaderParts));
+                setFormNamespaceAndFieldPath(form2Observations, form2CSVHeaderParts);
+            }
         }
         return form2Observations;
     }
