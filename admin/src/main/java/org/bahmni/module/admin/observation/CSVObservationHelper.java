@@ -19,6 +19,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static java.util.Arrays.asList;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -107,21 +110,33 @@ public class CSVObservationHelper {
         return observation;
     }
 
-    private String getValue(KeyValue obsRow, Concept obsConcept) {
+    private Object getValue(KeyValue obsRow, Concept obsConcept) {
+        Map<String, Object> valueConcept = null;
         if (obsConcept.getDatatype().isCoded()) {
             List<Concept> valueConcepts = conceptService.getConceptsByName(obsRow.getValue());
-            Concept valueConcept = null;
             for (Concept concept : valueConcepts) {
                 ConceptName name = concept.getFullySpecifiedName(Context.getLocale()) != null ?
                         concept.getFullySpecifiedName(Context.getLocale()) : concept.getName();
                 if (name.getName().equalsIgnoreCase(obsRow.getValue())) {
-                    valueConcept = concept;
+                    valueConcept = new LinkedHashMap<>();
+                    Map<String, Object> conceptNameDetails = new HashMap<>();
+                    conceptNameDetails.put("name", concept.getName().getName());
+                    conceptNameDetails.put("uuid", concept.getName().getUuid());
+                    conceptNameDetails.put("display", concept.getDisplayString());
+                    conceptNameDetails.put("locale", concept.getName().getLocale());
+                    conceptNameDetails.put("localePreferred", concept.getName().getLocalePreferred());
+                    conceptNameDetails.put("conceptNameType", concept.getName().getConceptNameType());
+                    valueConcept.put("uuid", concept.getUuid());
+                    valueConcept.put("name", conceptNameDetails);
+                    valueConcept.put("names", concept.getNames());
+                    valueConcept.put("displayString", concept.getDisplayString());
+                    valueConcept.put("translationKey", concept.getName());
                     break;
                 }
             }
             if (valueConcept == null)
                 throw new ConceptNotFoundException(obsRow.getValue() + " not found");
-            return valueConcept.getUuid();
+            return valueConcept;
         }
         return obsRow.getValue();
     }

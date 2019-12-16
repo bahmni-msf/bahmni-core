@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static java.util.Arrays.asList;
 import static org.bahmni.module.admin.observation.CSVObservationHelper.getLastItem;
@@ -204,6 +206,9 @@ public class CSVObservationHelperTest {
         when(valueConcept.getName()).thenReturn(valueConceptName);
         when(valueConceptName.getName()).thenReturn("tall");
         when(valueConcept.getUuid()).thenReturn("108abe5c-555e-40d2-ba16-5645a7ad237b");
+        when(valueConcept.getName().getName()).thenReturn("tall");
+        when(valueConcept.getName().getUuid()).thenReturn("108abe5c-555e-40d2-ba16-5645a7ad45237");
+
 
         CSVObservationHelper csvObservationHelper = new CSVObservationHelper(conceptService);
         Date encounterDate = new Date();
@@ -212,7 +217,9 @@ public class CSVObservationHelperTest {
         assertEquals(1, observations.size());
         EncounterTransaction.Observation heightObservation = observations.get(0);
         assertEquals("Height", heightObservation.getConcept().getName());
-        assertEquals("108abe5c-555e-40d2-ba16-5645a7ad237b", heightObservation.getValue());
+        assertEquals("108abe5c-555e-40d2-ba16-5645a7ad237b", (String) ((LinkedHashMap<String, Object>) heightObservation.getValue()).get("uuid"));
+        assertEquals("108abe5c-555e-40d2-ba16-5645a7ad45237", (String) ((HashMap<String, Object>) ((LinkedHashMap<String, Object>) heightObservation.getValue()).get("name")).get("uuid"));
+        assertEquals("tall", (String) ((HashMap<String, Object>) ((LinkedHashMap<String, Object>) heightObservation.getValue()).get("name")).get("name"));
         assertEquals(encounterDate, heightObservation.getObservationDateTime());
 
     }
