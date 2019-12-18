@@ -162,7 +162,7 @@ public class CSVObservationHelper {
     public boolean isForm2Type(KeyValue obsRow) {
         String key = obsRow.getKey();
         if (StringUtils.isNotBlank(key)) {
-            String[] csvHeaderParts = key.split("\\.");
+            String[] csvHeaderParts = key.split((String.format("\\%s", getObsPathSplitter())));
             return csvHeaderParts[0].equalsIgnoreCase(FORM2_TYPE);
         }
         return false;
