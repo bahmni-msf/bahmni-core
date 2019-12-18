@@ -300,9 +300,25 @@ public class CSVObservationHelperTest {
     }
 
     @Test
-    public void shouldReturnTrueIfCSVObsIsOfForm2Type() {
+    public void shouldReturnTrueIfCSVObsIsOfForm2TypeWithDefaultObsPathSplitter() {
         KeyValue csvObservation = new KeyValue();
         csvObservation.setKey("Form2.BMI Data.Height");
+
+        when(administrationService.getGlobalProperty("bahmni.admin.csv.upload.obsPath.splitter"))
+                .thenReturn("");
+
+        CSVObservationHelper csvObservationHelper = new CSVObservationHelper(conceptService, administrationService);
+
+        assertTrue(csvObservationHelper.isForm2Type(csvObservation));
+    }
+
+    @Test
+    public void shouldReturnTrueIfCSVObsIsOfForm2TypeWithConfiguredObsPathSplitter() {
+        KeyValue csvObservation = new KeyValue();
+        csvObservation.setKey("Form2$BMI Data$Height");
+
+        when(administrationService.getGlobalProperty("bahmni.admin.csv.upload.obsPath.splitter"))
+                .thenReturn("$");
 
         CSVObservationHelper csvObservationHelper = new CSVObservationHelper(conceptService, administrationService);
 
