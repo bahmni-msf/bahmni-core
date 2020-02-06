@@ -65,6 +65,7 @@ public class BahmniFormBuilderObsToTabularViewMapper extends BahmniObservationsT
         return obsRows;
     }
 
+    // Observation rows are distinguished by encounter uuid and obs parent formFieldPath
     private String getRowIdentifier(BahmniObservation bahmniObservation) {
         return bahmniObservation.getEncounterUuid() + getParentFormFieldPath(bahmniObservation.getFormFieldPath());
     }

@@ -107,6 +107,13 @@ public class FormUtilTest {
     }
 
     @Test
+    public void shouldReturnParentFormFieldPathForGivenThreeLevelFormFieldPath() {
+        String expectedFormNameWithVersion = "FormName.1/1-0/2-0";
+        String actualFormNameWithVersion = FormUtil.getParentFormFieldPath("FormName.1/1-0/2-0/3-0");
+        assertEquals(expectedFormNameWithVersion, actualFormNameWithVersion);
+    }
+
+    @Test
     public void shouldReturnFormNameAlongWithVersionIfGivenFormFieldPathDoesNotHaveSlash() {
         String expectedFormNameWithVersion = "";
         String actualFormNameWithVersion = FormUtil.getParentFormFieldPath("FormName.1");
