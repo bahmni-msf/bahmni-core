@@ -252,7 +252,7 @@ public class BahmniFormBuilderObsToTabularViewMapperTest {
     }
 
     @Test
-    public void shouldReturnPivotTableWithTwoRowsWhenAddMoreSectionHasAllConceptsIncludingGroupByConcept() {
+    public void shouldReturnPivotTableWithTwoRowsDifferentiatedByEncounterUUIDAndParentFormFieldPathsWhenAddMoreSectionHasAllConceptsIncludingGroupByConcept() {
 
         String groupByConceptName = "id";
         String weightConceptName = "weight";
