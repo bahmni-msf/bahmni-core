@@ -82,4 +82,15 @@ public class VisitDaoImpl implements VisitDao {
         }
         return queryToGetVisitIds.list();
     }
+
+    @Override
+    public List<Integer> getEncounterIds(String patientUuid, Integer numberOfEncounters, Integer numberOfVisits) {
+        final Query queryToGetEncounterIds = sessionFactory.getCurrentSession().createQuery(
+                "select e.encounterId from Encounter e where e.patient.uuid=:patientUuid"
+        );
+        if (patientUuid != null) {
+            queryToGetEncounterIds.setString("patientUuid", patientUuid);
+        }
+        return queryToGetEncounterIds.list();
+    }
 }

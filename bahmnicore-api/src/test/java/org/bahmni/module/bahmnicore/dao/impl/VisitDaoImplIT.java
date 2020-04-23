@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class VisitDaoImplIT extends BaseIntegrationTest {
     
@@ -45,5 +47,13 @@ public class VisitDaoImplIT extends BaseIntegrationTest {
     public void shouldNotGetVoidedEncounter() throws Exception {
         List<Encounter> admitAndDischargeEncounters = visitDao.getAdmitAndDischargeEncounters(902);
         assertEquals(1, admitAndDischargeEncounters.size());
+    }
+
+    @Test
+    public void shouldReturnAllEncountersWhenNumberOfVisitsAndEncountersAreNotProvided() {
+        final List<Integer> encounterIds = visitDao.getEncounterIds("86526ed5-3c11-11de-a0ba-001e378eb67a", null, null);
+
+        assertEquals(5, encounterIds.size());
+        assertTrue(encounterIds.containsAll(asList(38, 39, 40, 41, 42)));
     }
 }
