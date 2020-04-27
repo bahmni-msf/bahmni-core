@@ -51,7 +51,8 @@ public class BahmniObservationsController extends BaseRestController {
                                              @RequestParam(value = "numberOfVisits", required = false) Integer numberOfVisits,
                                              @RequestParam(value = "obsIgnoreList", required = false) List<String> obsIgnoreList,
                                              @RequestParam(value = "filterObsWithOrders", required = false, defaultValue = "true") Boolean filterObsWithOrders,
-                                             @RequestParam(value = "loadComplexData", required = false) Boolean loadComplexData) throws ParseException {
+                                             @RequestParam(value = "loadComplexData", required = false) Boolean loadComplexData,
+                                             @RequestParam(value = "numberOfEncounters", required = false) Integer numberOfEncounters) throws ParseException {
 
         List<Concept> rootConcepts = MiscUtils.getConceptsForNames(rootConceptNames, conceptService);
 
