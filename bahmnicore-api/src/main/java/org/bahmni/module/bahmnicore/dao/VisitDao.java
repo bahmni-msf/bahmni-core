@@ -17,6 +17,14 @@ public interface VisitDao {
 
     List<Integer> getVisitIdsFor(String patientUuid, Integer numberOfVisits);
 
-    List getEncounterIds(String patientUuid, Integer numberOfEncounters, Integer numberOfVisits);
+    /**
+     *
+     * @param patientUuid
+     * @param numberOfEncounters
+     * @param numberOfVisits
+     * @return Latest encounter ids limited(max) by numberOfEncounters where encounters do not go beyond latest numberOfVisits.
+     * It also works when either numberOfEncounters or numberOfVisits are provided along with mandatory patientUuid
+     */
+    List<Integer> getEncounterIds(String patientUuid, Integer numberOfEncounters, Integer numberOfVisits);
 
 }
