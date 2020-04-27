@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.openmrs.Concept;
+import org.openmrs.ConceptName;
 import org.openmrs.Encounter;
 import org.openmrs.Obs;
 import org.openmrs.Person;
@@ -27,15 +28,14 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.EMPTY_LIST;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -271,5 +271,76 @@ public class BahmniObsServiceImplTest {
 
         assertEquals(1, bahmniObservations.size());
         assertEquals(bahmniObservation, bahmniObservations.iterator().next());
+    }
+
+    @Test
+    public void shouldReturnObservationsForGivenNumberOfVisitsWhenNumberOfEncountersIsNotProvided() {
+        final Concept height = mock(Concept.class);
+        final ConceptName heightConceptName = mock(ConceptName.class);
+        when(height.getName()).thenReturn(heightConceptName);
+        when(heightConceptName.getName()).thenReturn("Height");
+
+        final Concept weight = mock(Concept.class);
+        final ConceptName weightConceptName = mock(ConceptName.class);
+        when(weight.getName()).thenReturn(weightConceptName);
+        when(weightConceptName.getName()).thenReturn("Weight");
+        final String patientUuid = "patient-uuid";
+        final List<Concept> conceptNames = asList(height, weight);
+
+        final List<Integer> visitIds = asList(3, 4, 5);
+        Obs heightObs = mock(Obs.class);
+        Obs weightObs = mock(Obs.class);
+        when(visitDao.getVisitIdsFor(patientUuid, 3)).thenReturn(visitIds);
+        final List<Obs> observations = asList(heightObs, weightObs);
+        when(obsDao.getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, null, null, null, null, null)).thenReturn(observations);
+        final BahmniObservation bahmniObservationHeight = mock(BahmniObservation.class);
+        final BahmniObservation bahmniObservationWeight = mock(BahmniObservation.class);
+        final List<BahmniObservation> expectedBahmniObs = asList(bahmniObservationHeight, bahmniObservationWeight);
+        when(omrsObsToBahmniObsMapper.map(any(), any())).thenReturn(expectedBahmniObs);
+
+        final Collection<BahmniObservation> actualBahmniObs = bahmniObsService.observationsFor(patientUuid, conceptNames, 3, null, emptyList(), null, null, null, null);
+
+        assertEquals(2, actualBahmniObs.size());
+        assertEquals(expectedBahmniObs, actualBahmniObs);
+    }
+
+    @Test
+    public void shouldReturnObservationsForGivenNumberOfVisitsAndEncounters() {
+        final Concept height = mock(Concept.class);
+        final ConceptName heightConceptName = mock(ConceptName.class);
+        when(height.getName()).thenReturn(heightConceptName);
+        when(heightConceptName.getName()).thenReturn("Height");
+
+        final Concept weight = mock(Concept.class);
+        final ConceptName weightConceptName = mock(ConceptName.class);
+        when(weight.getName()).thenReturn(weightConceptName);
+        when(weightConceptName.getName()).thenReturn("Weight");
+        final String patientUuid = "patient-uuid";
+        final List<Concept> conceptNames = asList(height, weight);
+
+        final List<Integer> visitIds = asList(3, 4, 5);
+        Obs heightObs = mock(Obs.class);
+        Obs weightObs = mock(Obs.class);
+        when(visitDao.getVisitIdsFor(patientUuid, 3)).thenReturn(visitIds);
+        final List<Obs> observations = asList(heightObs, weightObs);
+        when(obsDao.getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, null, null, null, null, null)).thenReturn(observations);
+        final BahmniObservation bahmniObservationHeight = mock(BahmniObservation.class);
+        final BahmniObservation bahmniObservationWeight = mock(BahmniObservation.class);
+        final List<BahmniObservation> expectedBahmniObs = asList(bahmniObservationHeight, bahmniObservationWeight);
+        when(omrsObsToBahmniObsMapper.map(any(), any())).thenReturn(expectedBahmniObs);
+
+        final Collection<BahmniObservation> actualBahmniObs = bahmniObsService.observationsFor(patientUuid, conceptNames, 3, 10, emptyList(), null, null, null, null);
+
+        assertEquals(2, actualBahmniObs.size());
+        assertEquals(expectedBahmniObs, actualBahmniObs);
+
+    }
+
+    @Test
+    public void shouldReturnEmptyListWhenConceptListIsEmpty() {
+
+        final Collection<BahmniObservation> bahmniObs = bahmniObsService.observationsFor("patient-uuid", new ArrayList<>(), 3, 10, emptyList(), null, null, null, null);
+
+        assertEquals(0, bahmniObs.size());
     }
 }

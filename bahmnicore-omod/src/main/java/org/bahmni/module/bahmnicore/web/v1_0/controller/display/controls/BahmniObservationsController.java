@@ -50,7 +50,8 @@ public class BahmniObservationsController extends BaseRestController {
                                              @RequestParam(value = "scope", required = false) String scope,
                                              @RequestParam(value = "numberOfVisits", required = false) Integer numberOfVisits,
                                              @RequestParam(value = "obsIgnoreList", required = false) List<String> obsIgnoreList,
-                                             @RequestParam(value = "filterObsWithOrders", required = false, defaultValue = "true") Boolean filterObsWithOrders ) throws ParseException {
+                                             @RequestParam(value = "filterObsWithOrders", required = false, defaultValue = "true") Boolean filterObsWithOrders,
+                                             @RequestParam(value = "numberOfEncounters", required = false) Integer numberOfEncounters) throws ParseException {
 
         List<Concept> rootConcepts = MiscUtils.getConceptsForNames(rootConceptNames, conceptService);
 
@@ -60,7 +61,7 @@ public class BahmniObservationsController extends BaseRestController {
         } else if (ObjectUtils.equals(scope, INITIAL)) {
             observations = bahmniObsService.getInitial(patientUUID, rootConcepts, numberOfVisits, obsIgnoreList, filterObsWithOrders, null);
         } else {
-            observations = bahmniObsService.observationsFor(patientUUID, rootConcepts, numberOfVisits, obsIgnoreList, filterObsWithOrders, null, null, null);
+            observations = bahmniObsService.observationsFor(patientUUID, rootConcepts, numberOfVisits, numberOfEncounters, obsIgnoreList, filterObsWithOrders, null, null, null);
         }
 
         sendObsToGroovyScript(getConceptNames(rootConcepts), observations);
