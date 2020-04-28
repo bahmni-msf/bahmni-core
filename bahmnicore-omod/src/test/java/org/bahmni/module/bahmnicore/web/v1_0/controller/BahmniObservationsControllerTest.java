@@ -7,8 +7,10 @@ import org.bahmni.test.builder.VisitBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.openmrs.Concept;
+import org.openmrs.ConceptName;
 import org.openmrs.Visit;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.VisitService;
@@ -21,8 +23,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static org.codehaus.groovy.runtime.InvokerHelper.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -172,6 +176,29 @@ public class BahmniObservationsControllerTest {
         verify(bahmniObsService, times(1)).getBahmniObservationByUuid("observationUuid");
         assertNotNull("BahmniObservation should not be null", actualBahmniObservation);
         assertEquals(expectedBahmniObservation, actualBahmniObservation);
+    }
+
+    @Test
+    public void shouldMakeACallToGetObsForGivenNumberOfEncountersAndVisits() throws Exception {
+        String obsUuid = "ObsUuid";
+        ArrayList<BahmniObservation> bahmniObservations = new ArrayList<>();
+        bahmniObservations.add(new BahmniObservationBuilder().withUuid(obsUuid).build());
+        final String patientUuid = "patient-uuid";
+        final List<String> conceptNames = asList("Weight");
+        final Concept concept = mock(Concept.class);
+        ConceptName conceptName = mock(ConceptName.class);
+        when(concept.getName()).thenReturn(conceptName);
+        when(conceptName.getName()).thenReturn("Weight");
+        when(conceptService.getConceptByName("Weight")).thenReturn(concept);
+        final List<Concept> concepts = asList(concept);
+        when(bahmniObsService.observationsFor(patientUuid, concepts, 3, 10, null, null, null, null, null))
+                .thenReturn(bahmniObservations);
+
+        Collection<BahmniObservation> actualResult = bahmniObservationsController.get(patientUuid, conceptNames, null, 3, null, null, 10);
+        verify(conceptService).getConceptByName("Weight");
+        verify(bahmniObsService).observationsFor(patientUuid, concepts, 3, 10, null, null, null, null, null);
+        assertEquals(1, actualResult.size());
+        assertEquals(obsUuid, actualResult.iterator().next().getUuid());
     }
 
 }
