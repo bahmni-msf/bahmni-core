@@ -5,7 +5,7 @@ import org.bahmni.module.bahmnicore.extensions.BahmniExtensions;
 import org.bahmni.module.bahmnicore.obs.ObservationsAdder;
 import org.bahmni.module.bahmnicore.service.BahmniObsService;
 import org.bahmni.module.bahmnicore.util.MiscUtils;
-import org.bahmni.module.bahmnicore.web.v1_0.utils.ObsComplexDataUtil;
+import org.bahmni.module.bahmnicore.web.v1_0.mapper.ComplexDataMapper;
 import org.openmrs.Concept;
 import org.openmrs.Visit;
 import org.openmrs.api.ConceptService;
@@ -13,6 +13,7 @@ import org.openmrs.api.VisitService;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.BaseRestController;
+import org.openmrs.obs.ComplexData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.text.ParseException;
 import java.util.*;
+
+import static java.util.Objects.isNull;
 
 @Controller
 @RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/bahmnicore/observations")
@@ -33,14 +36,16 @@ public class BahmniObservationsController extends BaseRestController {
     private ConceptService conceptService;
     private VisitService visitService;
     private BahmniExtensions bahmniExtensions;
+    private ComplexDataMapper complexDataMapper;
 
     @Autowired
     public BahmniObservationsController(BahmniObsService bahmniObsService, ConceptService conceptService,
-                                        VisitService visitService, BahmniExtensions bahmniExtensions) {
+                                        VisitService visitService, BahmniExtensions bahmniExtensions, ComplexDataMapper complexDataMapper) {
         this.bahmniObsService = bahmniObsService;
         this.conceptService = conceptService;
         this.visitService = visitService;
         this.bahmniExtensions = bahmniExtensions;
+        this.complexDataMapper = complexDataMapper;
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -64,7 +69,7 @@ public class BahmniObservationsController extends BaseRestController {
             observations = bahmniObsService.observationsFor(patientUUID, rootConcepts, numberOfVisits, obsIgnoreList, filterObsWithOrders, null, null, null);
         }
 
-        ObsComplexDataUtil.makeComplexDataNull(observations, loadComplexData);
+        makeComplexDataNull(observations, loadComplexData);
         sendObsToGroovyScript(getConceptNames(rootConcepts), observations);
 
         return observations;
@@ -89,7 +94,7 @@ public class BahmniObservationsController extends BaseRestController {
             // Sending conceptName and obsIgnorelist, kinda contradicts, since we filter directly on concept names (not on root concept)
             observations =  bahmniObsService.getObservationForVisit(visitUuid, conceptNames, MiscUtils.getConceptsForNames(obsIgnoreList, conceptService), filterObsWithOrders, null);
         }
-        ObsComplexDataUtil.makeComplexDataNull(observations, loadComplexData);
+        makeComplexDataNull(observations, loadComplexData);
         return observations;
     }
 
@@ -100,7 +105,7 @@ public class BahmniObservationsController extends BaseRestController {
                                              @RequestParam(value = "loadComplexData", required = false) Boolean loadComplexData) {
         Collection<BahmniObservation> observations;
         observations = bahmniObsService.getObservationsForEncounter(encounterUuid, conceptNames);
-        ObsComplexDataUtil.makeComplexDataNull(observations, loadComplexData);
+        makeComplexDataNull(observations, loadComplexData);
         return observations;
     }
 
@@ -120,7 +125,7 @@ public class BahmniObservationsController extends BaseRestController {
         } else {
             observations = bahmniObsService.getObservationsForPatientProgram(patientProgramUuid, rootConceptNames, obsIgnoreList);
         }
-        ObsComplexDataUtil.makeComplexDataNull(observations, loadComplexData);
+        makeComplexDataNull(observations, loadComplexData);
         sendObsToGroovyScript(rootConceptNames, observations);
         return observations;
     }
@@ -136,11 +141,30 @@ public class BahmniObservationsController extends BaseRestController {
         } else {
             observation = bahmniObsService.getBahmniObservationByUuid(observationUuid);
         }
-        ObsComplexDataUtil.makeComplexDataNull(observation, loadComplexData);
+        makeComplexDataNull(observation, loadComplexData);
         return observation;
     }
 
+    private void makeComplexDataNull(Collection<BahmniObservation> observations, Boolean loadComplexData) {
+        if (!isNull(loadComplexData) && loadComplexData == false) {
+            observations.forEach(observation -> {
+                if (!isNull(observation.getGroupMembers()) && observation.getGroupMembers().size() > 0) {
+                    makeComplexDataNull(observation.getGroupMembers(), loadComplexData);
+                }
+                observation.setComplexData(complexDataMapper.getNullifiedComplexData((ComplexData) observation.getComplexData()));
+            });
+        }
+    }
 
+    private void makeComplexDataNull(BahmniObservation observation, Boolean loadComplexData) {
+        if (!loadComplexData) {
+            if (!isNull(observation.getGroupMembers()) && observation.getGroupMembers().size() > 0) {
+                makeComplexDataNull(observation.getGroupMembers(), loadComplexData);
+            }
+            observation.setComplexData(complexDataMapper.getNullifiedComplexData((ComplexData) observation.getComplexData()));
+        }
+
+    }
 
     private void sendObsToGroovyScript(List<String> questions, Collection<BahmniObservation> observations) throws ParseException {
         ObservationsAdder observationsAdder = (ObservationsAdder) bahmniExtensions.getExtension("observationsAdder", "CurrentMonthOfTreatment.groovy");
