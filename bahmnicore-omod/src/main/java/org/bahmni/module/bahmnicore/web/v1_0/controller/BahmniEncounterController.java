@@ -1,7 +1,6 @@
 package org.bahmni.module.bahmnicore.web.v1_0.controller;
 
 import org.bahmni.module.bahmnicore.web.v1_0.VisitClosedException;
-import org.bahmni.module.bahmnicore.web.v1_0.utils.ObsComplexDataUtil;
 import org.openmrs.Encounter;
 import org.openmrs.Visit;
 import org.openmrs.api.EncounterService;
@@ -54,13 +53,9 @@ public class BahmniEncounterController extends BaseRestController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/{uuid}")
     @ResponseBody
-    public BahmniEncounterTransaction get(@PathVariable("uuid") String uuid,
-                                          @RequestParam(value = "includeAll", required = false) Boolean includeAll,
-                                          @RequestParam(value = "loadComplexData", required = false) Boolean loadComplexData) {
+    public BahmniEncounterTransaction get(@PathVariable("uuid") String uuid, @RequestParam(value = "includeAll", required = false) Boolean includeAll) {
         EncounterTransaction encounterTransaction = emrEncounterService.getEncounterTransaction(uuid, includeAll);
-        BahmniEncounterTransaction bahmniEncounterTransaction = bahmniEncounterTransactionMapper.map(encounterTransaction, includeAll);
-        ObsComplexDataUtil.makeComplexDataNull(bahmniEncounterTransaction.getObservations(), loadComplexData);
-        return bahmniEncounterTransaction;
+        return bahmniEncounterTransactionMapper.map(encounterTransaction, includeAll);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/find")
@@ -85,7 +80,7 @@ public class BahmniEncounterController extends BaseRestController {
             throw new VisitClosedException(errorMessage);
         }
         else{
-            BahmniEncounterTransaction bahmniEncounterTransaction = get(uuid,false, true);
+            BahmniEncounterTransaction bahmniEncounterTransaction = get(uuid,false);
             bahmniEncounterTransaction.setReason(reason);
             bahmniEncounterTransactionService.delete(bahmniEncounterTransaction);
         }

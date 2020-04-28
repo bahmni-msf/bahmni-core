@@ -1,11 +1,8 @@
 package org.bahmni.module.bahmnicore.web.v1_0.controller;
 
-import org.apache.xpath.operations.Bool;
 import org.bahmni.module.bahmnicore.web.v1_0.VisitClosedException;
-import org.bahmni.module.bahmnicore.web.v1_0.utils.ObsComplexDataUtil;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.openmrs.Encounter;
@@ -13,28 +10,20 @@ import org.openmrs.Visit;
 import org.openmrs.api.EncounterService;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniEncounterSearchParameters;
 import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniEncounterTransaction;
-import org.openmrs.module.bahmniemrapi.encountertransaction.contract.BahmniObservation;
 import org.openmrs.module.bahmniemrapi.encountertransaction.mapper.BahmniEncounterTransactionMapper;
 import org.openmrs.module.bahmniemrapi.encountertransaction.service.BahmniEncounterTransactionService;
 import org.openmrs.module.emrapi.encounter.EmrEncounterService;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ObsComplexDataUtil.class})
 public class BahmniEncounterControllerTest {
     @Mock
     private EmrEncounterService emrEncounterService;
@@ -103,27 +92,4 @@ public class BahmniEncounterControllerTest {
         bahmniEncounterController.delete("410491d2-b617-42ad-bf0f-de2fc9b42998","Undo Discharge");
     }
 
-    @Test
-    public void shouldCallMakeComplexDataNullMethod() throws Exception {
-        EncounterTransaction encounterTransaction = mock(EncounterTransaction.class);
-        BahmniEncounterTransaction bahmniEncounterTransaction = mock(BahmniEncounterTransaction.class);
-        List<BahmniObservation> observations = Collections.singletonList(mock(BahmniObservation.class));
-        String uuid = "uuid";
-        boolean includeAll = false;
-        Boolean loadComplexData = false;
-        when(emrEncounterService.getEncounterTransaction(uuid, includeAll)).thenReturn(encounterTransaction);
-        when(bahmniEncounterTransactionMapper.map(encounterTransaction, includeAll)).thenReturn(bahmniEncounterTransaction);
-        when(bahmniEncounterTransaction.getObservations()).thenReturn(observations);
-        PowerMockito.spy(ObsComplexDataUtil.class);
-        PowerMockito.doNothing().when(ObsComplexDataUtil.class, "makeComplexDataNull", observations, loadComplexData);
-        bahmniEncounterController = new BahmniEncounterController(null, emrEncounterService, null,
-                bahmniEncounterTransactionService, bahmniEncounterTransactionMapper);
-
-        bahmniEncounterController.get(uuid, includeAll, loadComplexData);
-
-        verify(emrEncounterService).getEncounterTransaction(uuid, includeAll);
-        verify(bahmniEncounterTransactionMapper).map(encounterTransaction, includeAll);
-        verifyStatic();
-        ObsComplexDataUtil.makeComplexDataNull(observations, false);
-    }
 }
