@@ -12,7 +12,10 @@ public class ObsComplexDataUtil {
     public static void makeComplexDataNull(Collection<BahmniObservation> observations, Boolean loadComplexData) {
         if (!isNull(loadComplexData) && !loadComplexData) {
             observations.forEach(observation -> {
-               makeComplexDataNull(observation, loadComplexData);
+                if (!isNull(observation.getGroupMembers()) && observation.getGroupMembers().size() > 0) {
+                    makeComplexDataNull(observation.getGroupMembers(), loadComplexData);
+                }
+                observation.setComplexData(getNullifiedComplexData((ComplexData) observation.getComplexData()));
             });
         }
     }
