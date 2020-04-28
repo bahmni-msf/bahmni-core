@@ -43,6 +43,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyCollectionOf;
+import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -292,14 +294,17 @@ public class BahmniObsServiceImplTest {
         Obs weightObs = mock(Obs.class);
         when(visitDao.getVisitIdsFor(patientUuid, 3)).thenReturn(visitIds);
         final List<Obs> observations = asList(heightObs, weightObs);
-        when(obsDao.getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, null, null, null, null, null)).thenReturn(observations);
+        when(obsDao.getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null)).thenReturn(observations);
         final BahmniObservation bahmniObservationHeight = mock(BahmniObservation.class);
         final BahmniObservation bahmniObservationWeight = mock(BahmniObservation.class);
         final List<BahmniObservation> expectedBahmniObs = asList(bahmniObservationHeight, bahmniObservationWeight);
-        when(omrsObsToBahmniObsMapper.map(any(), any())).thenReturn(expectedBahmniObs);
+        when(omrsObsToBahmniObsMapper.map(anyListOf(Obs.class), anyCollectionOf(Concept.class))).thenReturn(expectedBahmniObs);
 
         final Collection<BahmniObservation> actualBahmniObs = bahmniObsService.observationsFor(patientUuid, conceptNames, 3, null, emptyList(), null, null, null, null);
 
+        verify(visitDao).getVisitIdsFor(patientUuid, 3);
+        verify(obsDao).getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null);
+        verify(omrsObsToBahmniObsMapper).map(anyListOf(Obs.class), anyCollectionOf(Concept.class));
         assertEquals(2, actualBahmniObs.size());
         assertEquals(expectedBahmniObs, actualBahmniObs);
     }
@@ -322,15 +327,21 @@ public class BahmniObsServiceImplTest {
         Obs heightObs = mock(Obs.class);
         Obs weightObs = mock(Obs.class);
         when(visitDao.getVisitIdsFor(patientUuid, 3)).thenReturn(visitIds);
+        List<Integer> encounterIds = asList(40, 41, 42, 43, 44);
+        when(visitDao.getEncounterIds(patientUuid, 5, 3)).thenReturn(encounterIds);
         final List<Obs> observations = asList(heightObs, weightObs);
-        when(obsDao.getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, null, null, null, null, null)).thenReturn(observations);
+        when(obsDao.getObsFor(patientUuid, asList("Height", "Weight"), encounterIds, visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null)).thenReturn(observations);
         final BahmniObservation bahmniObservationHeight = mock(BahmniObservation.class);
         final BahmniObservation bahmniObservationWeight = mock(BahmniObservation.class);
         final List<BahmniObservation> expectedBahmniObs = asList(bahmniObservationHeight, bahmniObservationWeight);
-        when(omrsObsToBahmniObsMapper.map(any(), any())).thenReturn(expectedBahmniObs);
+        when(omrsObsToBahmniObsMapper.map(anyListOf(Obs.class), anyCollectionOf(Concept.class))).thenReturn(expectedBahmniObs);
 
-        final Collection<BahmniObservation> actualBahmniObs = bahmniObsService.observationsFor(patientUuid, conceptNames, 3, 10, emptyList(), null, null, null, null);
+        final Collection<BahmniObservation> actualBahmniObs = bahmniObsService.observationsFor(patientUuid, conceptNames, 3, 5, emptyList(), null, null, null, null);
 
+        verify(visitDao).getVisitIdsFor(patientUuid, 3);
+        verify(visitDao).getEncounterIds(patientUuid, 5, 3);
+        verify(obsDao).getObsFor(patientUuid, asList("Height", "Weight"), encounterIds, visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null);
+        verify(omrsObsToBahmniObsMapper).map(anyListOf(Obs.class), anyCollectionOf(Concept.class));
         assertEquals(2, actualBahmniObs.size());
         assertEquals(expectedBahmniObs, actualBahmniObs);
 
