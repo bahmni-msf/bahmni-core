@@ -90,6 +90,23 @@ public class VisitDaoImplIT extends BaseIntegrationTest {
     }
 
     @Test
+    public void shouldReturnGivenNumberOfLatestEncountersWhenGivenNumberOfVisitsIsZero() {
+        List<Integer> encounterIds = visitDao.getEncounterIds("86526ed5-3c11-11de-a0ba-001e378eb67a", 1, 0);
+
+        assertEquals(1, encounterIds.size());
+        assertEquals(39, encounterIds.get(0).intValue());
+    }
+
+    @Test
+    public void shouldReturnAllEncountersInTheGivenNumberOfVisitsWhenNumberOfEncountersIsZero() {
+        List<Integer> encounterIds = visitDao.getEncounterIds("86526ed5-3c11-11de-a0ba-001e378eb67a", 0, 1);
+
+        assertEquals(2, encounterIds.size());
+        assertEquals(39, encounterIds.get(0).intValue());
+        assertEquals(38, encounterIds.get(1).intValue());
+    }
+
+    @Test
     public void shouldNotReturnAnyEncounterIdsWhenInvalidPatientUUIDIsGiven() {
         assertEquals(0, visitDao.getEncounterIds("invalid-uuid", 3, 1).size());
     }

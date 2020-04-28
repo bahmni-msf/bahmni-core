@@ -90,9 +90,9 @@ public class VisitDaoImpl implements VisitDao {
     @Override
     public List<Integer> getEncounterIds(String patientUuid, Integer numberOfEncounters, Integer numberOfVisits) {
 
-        String encountersAndVisitsQuery = "select e.encounter_id" +
-                " from encounter e join (select visit_id from visit " +
-                "where patient_id in (select person_id from person where uuid=:patientUuid) and voided=0" +
+        String encountersAndVisitsQuery = "select e.encounter_id " +
+                "from encounter e join (select visit_id from visit " +
+                "where patient_id in (select person_id from person where uuid=:patientUuid) and voided=0 " +
                 "order by date_started desc %s) as v on v.visit_id=e.visit_id " +
                 "where e.voided=0 order by e.encounter_datetime desc %s;";
 
@@ -105,7 +105,7 @@ public class VisitDaoImpl implements VisitDao {
     }
 
     private String limitItems(Integer numberOfItems) {
-        if (numberOfItems != null) {
+        if (numberOfItems != null && numberOfItems > 0) {
             return format("limit %s", numberOfItems);
         }
         return StringUtils.EMPTY;
