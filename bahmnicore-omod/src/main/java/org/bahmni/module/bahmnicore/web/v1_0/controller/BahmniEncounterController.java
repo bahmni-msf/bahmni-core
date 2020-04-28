@@ -67,14 +67,12 @@ public class BahmniEncounterController extends BaseRestController {
     @ResponseBody
     public BahmniEncounterTransaction find(@RequestBody BahmniEncounterSearchParameters encounterSearchParameters) {
         EncounterTransaction encounterTransaction = bahmniEncounterTransactionService.find(encounterSearchParameters);
-        BahmniEncounterTransaction bahmniEncounterTransaction;
+
         if (encounterTransaction != null) {
-            bahmniEncounterTransaction = bahmniEncounterTransactionMapper.map(encounterTransaction, encounterSearchParameters.getIncludeAll());
+            return bahmniEncounterTransactionMapper.map(encounterTransaction, encounterSearchParameters.getIncludeAll());
         } else {
-            bahmniEncounterTransaction = bahmniEncounterTransactionMapper.map(new EncounterTransaction(), false);
+            return bahmniEncounterTransactionMapper.map(new EncounterTransaction(), false);
         }
-        ObsComplexDataUtil.makeComplexDataNull(bahmniEncounterTransaction.getObservations(), encounterSearchParameters.getLoadComplexData());
-        return bahmniEncounterTransaction;
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/{uuid}")
