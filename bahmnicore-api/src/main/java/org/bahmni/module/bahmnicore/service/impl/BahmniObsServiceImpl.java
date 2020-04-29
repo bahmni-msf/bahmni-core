@@ -66,6 +66,22 @@ public class BahmniObsServiceImpl implements BahmniObsService {
         return Collections.EMPTY_LIST;
     }
 
+    @Override
+    public Collection<BahmniObservation> observationsFor(String patientUuid, Collection<Concept> concepts, Integer numberOfVisits, Integer numberOfEncounters, List<String> obsIgnoreList, Boolean filterOutOrderObs, Order order, Date startDate, Date endDate) {
+        if (numberOfEncounters == null) {
+            return observationsFor(patientUuid, concepts, numberOfVisits, obsIgnoreList, filterOutOrderObs, order, startDate, endDate);
+        }
+        if (CollectionUtils.isNotEmpty(concepts)) {
+            List<String> conceptNames = getConceptNames(concepts);
+            final List<Obs> observations = obsDao.getObsFor(patientUuid, conceptNames, visitDao.getEncounterIds(patientUuid, numberOfEncounters, numberOfVisits),
+                    visitDao.getVisitIdsFor(patientUuid, numberOfVisits), -1, OrderBy.DESC, obsIgnoreList,
+                    filterOutOrderObs, order, startDate, endDate);
+            return omrsObsToBahmniObsMapper.map(filterIgnoredObs(obsIgnoreList, observations), concepts);
+        }
+        return Collections.EMPTY_LIST;
+    }
+
+
     private List<String> getConceptNames(Collection<Concept> concepts) {
         List<String> conceptNames = new ArrayList<>();
         for (Concept concept : concepts) {
