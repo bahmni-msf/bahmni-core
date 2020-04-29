@@ -25,7 +25,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static java.lang.Boolean.TRUE;
 import static java.util.Objects.nonNull;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 @Repository
 public class ObsDaoImpl implements ObsDao {
@@ -71,8 +73,17 @@ public class ObsDaoImpl implements ObsDao {
     }
 
     public List<Obs> getObsByPatientAndVisit(String patientUuid, List<String> conceptNames, List<Integer> listOfVisitIds,
-                                             Integer limit, OrderBy sortOrder, List<String> obsIgnoreList, Boolean filterOutOrderObs, Order order, Date startDate, Date endDate) {
+                                             Integer limit, OrderBy sortOrder, List<String> obsIgnoreList, Boolean filterOutOrderObs,
+                                             Order order, Date startDate, Date endDate) {
 
+        return getObsFor(patientUuid, conceptNames, null, listOfVisitIds, limit, sortOrder, obsIgnoreList,
+                filterOutOrderObs, order, startDate, endDate);
+    }
+
+    @Override
+    public List<Obs> getObsFor(String patientUuid, List<String> conceptNames, List<Integer> listOfEncounterIds,
+                               List<Integer> listOfVisitIds, Integer limit, OrderBy sortOrder, List<String> obsIgnoreList,
+                               Boolean filterOutOrderObs, Order order, Date startDate, Date endDate) {
         StringBuilder query = new StringBuilder("select obs from Obs as obs, ConceptName as cn " +
                 " where obs.person.uuid = :patientUuid " +
                 " and cn.concept = obs.concept.conceptId " +
@@ -80,8 +91,10 @@ public class ObsDaoImpl implements ObsDao {
                 " and cn.locale = :locale " +
                 " and cn.conceptNameType = :conceptNameType " +
                 " and cn.voided = false and obs.voided = false ");
-
-        if (CollectionUtils.isNotEmpty(listOfVisitIds)) {
+        if (isNotEmpty(listOfEncounterIds)) {
+            query.append(" and obs.encounter.encounterId in (:listOfEncounterIds) ");
+        }
+        if (isNotEmpty(listOfVisitIds)) {
             query.append(" and obs.encounter.visit.visitId in (:listOfVisitIds) ");
         }
         if (startDate != null) {
@@ -91,10 +104,10 @@ public class ObsDaoImpl implements ObsDao {
             query.append(" and obs.obsDatetime <= :endDate ");
         }
 
-        if (CollectionUtils.isNotEmpty(obsIgnoreList)) {
+        if (isNotEmpty(obsIgnoreList)) {
             query.append(" and cn.name not in (:obsIgnoreList) ");
         }
-        if (filterOutOrderObs) {
+        if (TRUE.equals(filterOutOrderObs)) {
             query.append(" and obs.order.orderId is null ");
         }
         if (null != order) {
@@ -106,17 +119,19 @@ public class ObsDaoImpl implements ObsDao {
             query.append(" order by obs.obsDatetime desc ");
         }
 
-
         Query queryToGetObservations = sessionFactory.getCurrentSession().createQuery(query.toString());
-        queryToGetObservations.setMaxResults(limit);
+        queryToGetObservations.setMaxResults(limit != null ? limit : -1);
         queryToGetObservations.setString("patientUuid", patientUuid);
         queryToGetObservations.setParameterList("conceptNames", conceptNames);
         queryToGetObservations.setParameter("conceptNameType", ConceptNameType.FULLY_SPECIFIED);
         queryToGetObservations.setString("locale", Context.getLocale().getLanguage());
-        if (null != obsIgnoreList && obsIgnoreList.size() > 0) {
+        if (isNotEmpty(obsIgnoreList)) {
             queryToGetObservations.setParameterList("obsIgnoreList", obsIgnoreList);
         }
-        if (null != listOfVisitIds && listOfVisitIds.size() > 0) {
+        if (isNotEmpty(listOfEncounterIds)) {
+            queryToGetObservations.setParameterList("listOfEncounterIds", listOfEncounterIds);
+        }
+        if (isNotEmpty(listOfVisitIds)) {
             queryToGetObservations.setParameterList("listOfVisitIds", listOfVisitIds);
         }
         if (null != order) {
@@ -213,13 +228,13 @@ public class ObsDaoImpl implements ObsDao {
         } else {
             criteria.add(Restrictions.in("encounter", encounters));
         }
-        if (CollectionUtils.isNotEmpty(persons)) {
+        if (isNotEmpty(persons)) {
             criteria.add(Restrictions.in("person", persons));
         }
-        if (CollectionUtils.isNotEmpty(conceptsForNames)) {
+        if (isNotEmpty(conceptsForNames)) {
             criteria.add(Restrictions.in("concept", conceptsForNames));
         }
-        if (CollectionUtils.isNotEmpty(obsIgnoreList)) {
+        if (isNotEmpty(obsIgnoreList)) {
             criteria.add(Restrictions.not(Restrictions.in("concept", obsIgnoreList)));
         }
         if (filterOutOrders) {
