@@ -13,14 +13,16 @@ import org.openmrs.api.context.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ObsDaoImplIT extends BaseIntegrationTest {
     
@@ -62,11 +64,11 @@ public class ObsDaoImplIT extends BaseIntegrationTest {
 
         List<Obs> obsForOrder = obsDao.getObsForOrder("129de0a3-05c4-444a-be03-e01b4c4b2419");
         assertEquals(5, obsForOrder.size());
-        assertEquals((Integer)12, obsForOrder.get(0).getId());
-        assertEquals((Integer)11, obsForOrder.get(1).getId());
-        assertEquals((Integer)10, obsForOrder.get(2).getId());
-        assertEquals((Integer)8, obsForOrder.get(3).getId());
-        assertEquals((Integer)7, obsForOrder.get(4).getId());
+        assertEquals((Integer) 12, obsForOrder.get(0).getId());
+        assertEquals((Integer) 11, obsForOrder.get(1).getId());
+        assertEquals((Integer) 10, obsForOrder.get(2).getId());
+        assertEquals((Integer) 8, obsForOrder.get(3).getId());
+        assertEquals((Integer) 7, obsForOrder.get(4).getId());
 
         assertEquals(0, obsDao.getObsForOrder("some-random-uuid").size());
     }
@@ -83,7 +85,7 @@ public class ObsDaoImplIT extends BaseIntegrationTest {
         listOfVisitIds.add(902);
         rootConcept.getName().getName();
 
-        List<Obs> bahmniObservations = obsDao.getObsFor(patientUUid, rootConcept, childConcept,listOfVisitIds, Collections.EMPTY_LIST, startDate, null);
+        List<Obs> bahmniObservations = obsDao.getObsFor(patientUUid, rootConcept, childConcept, listOfVisitIds, Collections.EMPTY_LIST, startDate, null);
 
         assertEquals(1, bahmniObservations.size());
         assertEquals(rootConceptName, bahmniObservations.get(0).getConcept().getName().getName());
@@ -106,13 +108,13 @@ public class ObsDaoImplIT extends BaseIntegrationTest {
         Encounter anotherEncounter = encounterService.getEncounter(41);
         Encounter unrelatedEncounter = encounterService.getEncounter(3);
 
-        List<Obs> bahmniObservations = obsDao.getObsFor(patientUUid, rootConcept, childConcept,listOfVisitIds, Arrays.asList(anEncounter, anotherEncounter), startDate, null);
+        List<Obs> bahmniObservations = obsDao.getObsFor(patientUUid, rootConcept, childConcept, listOfVisitIds, asList(anEncounter, anotherEncounter), startDate, null);
 
         assertEquals(1, bahmniObservations.size());
         assertEquals(rootConceptName, bahmniObservations.get(0).getConcept().getName().getName());
         assertEquals(3, bahmniObservations.get(0).getGroupMembers(true).size());
 
-        assertEquals(0, obsDao.getObsFor(patientUUid, rootConcept, childConcept, listOfVisitIds, Arrays.asList(unrelatedEncounter), startDate, null).size());
+        assertEquals(0, obsDao.getObsFor(patientUUid, rootConcept, childConcept, listOfVisitIds, asList(unrelatedEncounter), startDate, null).size());
     }
 
     @Test
@@ -131,7 +133,7 @@ public class ObsDaoImplIT extends BaseIntegrationTest {
         Concept vitalsConcept = Context.getConceptService().getConceptByName("Histopathology");
         Obs observation = obsDao.getChildObsFromParent("7d8f507a-fb89-11e3-bb80-f18addb6f9a4", vitalsConcept);
 
-        assertEquals((Integer)24, observation.getId());
+        assertEquals((Integer) 24, observation.getId());
     }
 
     @Test
@@ -177,5 +179,15 @@ public class ObsDaoImplIT extends BaseIntegrationTest {
         assertEquals(2, observations.size());
         assertEquals("2015-08-18 15:09:05.0", observations.get(0).getObsDatetime().toString());
         assertEquals("2016-08-18 15:09:05.0", observations.get(1).getObsDatetime().toString());
+    }
+
+    @Test
+    public void shouldReturnNonVoidedObsForGivenEncounterIds() {
+
+        final List<Obs> obs = obsDao.getObsFor("86526ed5-3c11-11de-a0ba-001e378eb67a", asList("Receptor Status", "Problem Index", "Weight", "RR"), asList(41, 39, 40), asList(902), null, null, null, null, null, null, null);
+
+        assertEquals(3, obs.size());
+        final List<Integer> actualObsIds = obs.stream().map(Obs::getObsId).collect(Collectors.toList());
+        assertTrue(actualObsIds.containsAll(asList(25, 31, 32)));
     }
 }
