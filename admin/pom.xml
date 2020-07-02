@@ -224,13 +224,6 @@
         </dependency>
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>form2-utils</id>
-            <url>https://s3.console.aws.amazon.com/s3/buckets/form2-utils</url>
-        </repository>
-    </repositories>
-
     <build>
         <resources>
             <resource>

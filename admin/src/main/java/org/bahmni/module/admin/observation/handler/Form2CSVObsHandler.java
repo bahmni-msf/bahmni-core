@@ -3,7 +3,7 @@ package org.bahmni.module.admin.observation.handler;
 import org.bahmni.csv.KeyValue;
 import org.bahmni.module.admin.csv.models.EncounterRow;
 import org.bahmni.module.admin.observation.CSVObservationHelper;
-import org.bahmni.module.service.FormFieldPathService;
+import org.bahmni.form2.service.FormFieldPathService;
 import org.openmrs.api.APIException;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
