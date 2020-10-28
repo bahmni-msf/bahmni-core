@@ -3554,7 +3554,7 @@
     <changeSet id="bahmni-core-201906201151" author="Samuel34">
     	<preConditions onFail="MARK_RAN">
             <sqlCheck expectedResult="0">
-                select count(*) from users where system_id='superman';
+                select count(*) from users where system_id='superman' or username='superman';
             </sqlCheck>
         </preConditions>
         <comment>Adding superman user</comment>
