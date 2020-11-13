@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.openmrs.Concept;
@@ -15,6 +16,9 @@ import org.openmrs.api.APIException;
 import org.openmrs.api.AdministrationService;
 import org.openmrs.api.ConceptService;
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -31,7 +35,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(CSVObservationHelper.class)
 public class CSVObservationHelperTest {
 
     @Rule
@@ -84,16 +91,15 @@ public class CSVObservationHelperTest {
     }
 
     @Test
-    public void shouldSetAbnormalInterpretationIfObsValueIsOutOfRange() throws ParseException {
+    public void shouldSetAbnormalInterpretationIfObsValueIsOutOfRange() throws Exception {
         KeyValue heightObsRow = new KeyValue("Height", "100");
         conceptNames.add("Height");
 
         ConceptNumeric heightNumericConcept = mock(ConceptNumeric.class);
 
-        when(heightNumericConcept.getDatatype()).thenReturn(conceptDatatype);
         when(heightNumericConcept.getName()).thenReturn(heightConceptName);
         when(conceptDatatype.isNumeric()).thenReturn(true);
-        when(conceptService.getConceptByName("Height")).thenReturn(heightNumericConcept);
+        whenNew(ConceptNumeric.class).withArguments(heightConcept).thenReturn(heightNumericConcept);
         when(heightNumericConcept.getHiNormal()).thenReturn(new Double(110));
         when(heightNumericConcept.getLowNormal()).thenReturn(new Double(105));
 

@@ -114,7 +114,8 @@ public class CSVObservationHelper {
         if (conceptNames.size() == 1) {
             observation.setValue(getValue(obsRow, obsConcept));
             if (obsConcept.getDatatype().isNumeric()) {
-                validateAndUpdateObservationInterpretation(obsRow, obsConcept, observation);
+                ConceptNumeric obsConceptNumeric = new ConceptNumeric(obsConcept);
+                validateAndUpdateObservationInterpretation(obsRow, obsConceptNumeric, observation);
             }
         } else {
             conceptNames.remove(0);
@@ -123,11 +124,11 @@ public class CSVObservationHelper {
         return observation;
     }
 
-    private void validateAndUpdateObservationInterpretation(KeyValue obsRow, Concept obsConcept, Observation observation) {
+    private void validateAndUpdateObservationInterpretation(KeyValue obsRow, ConceptNumeric obsConcept, Observation observation) {
         verifyNumericConceptValue(obsRow, Collections.singletonList(obsConcept.getName().getName()));
         Double recordedObsValue = Double.parseDouble(obsRow.getValue());
-        Double hiNormal = ((ConceptNumeric) obsConcept).getHiNormal();
-        Double lowNormal = ((ConceptNumeric) obsConcept).getLowNormal();
+        Double hiNormal = obsConcept.getHiNormal();
+        Double lowNormal = obsConcept.getLowNormal();
         if (nonNull(recordedObsValue) && ((nonNull(hiNormal) && recordedObsValue.compareTo(hiNormal) > 0) || (nonNull(lowNormal) && recordedObsValue.compareTo(lowNormal) < 0))) {
             observation.setInterpretation(String.valueOf(Obs.Interpretation.ABNORMAL));
         }
