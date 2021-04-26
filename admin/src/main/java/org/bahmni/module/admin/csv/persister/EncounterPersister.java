@@ -47,14 +47,16 @@ public class EncounterPersister implements EntityPersister<MultipleEncounterRow>
     private String patientMatchingAlgorithmClassName;
     private boolean shouldMatchExactPatientId;
     private String loginUuid;
+    private boolean shouldPerformForm2Validations;
 
     private static final Logger log = LogManager.getLogger(EncounterPersister.class);
 
-    public void init(UserContext userContext, String patientMatchingAlgorithmClassName, boolean shouldMatchExactPatientId, String loginUuid) {
+    public void init(UserContext userContext, String patientMatchingAlgorithmClassName, boolean shouldMatchExactPatientId, String loginUuid, boolean shouldPerformForm2Validations) {
         this.userContext = userContext;
         this.patientMatchingAlgorithmClassName = patientMatchingAlgorithmClassName;
         this.shouldMatchExactPatientId = shouldMatchExactPatientId;
         this.loginUuid = loginUuid;
+        this.shouldPerformForm2Validations = shouldPerformForm2Validations;
     }
 
     @Override
@@ -85,7 +87,7 @@ public class EncounterPersister implements EntityPersister<MultipleEncounterRow>
                     return noMatchingProviders(multipleEncounterRow);
                 }
 
-                List<BahmniEncounterTransaction> bahmniEncounterTransactions = bahmniEncounterTransactionImportService.getBahmniEncounterTransaction(multipleEncounterRow, patient);
+                List<BahmniEncounterTransaction> bahmniEncounterTransactions = bahmniEncounterTransactionImportService.getBahmniEncounterTransaction(multipleEncounterRow, patient, shouldPerformForm2Validations);
 
                 for (BahmniEncounterTransaction bahmniEncounterTransaction : bahmniEncounterTransactions) {
                     bahmniEncounterTransaction.setLocationUuid(loginUuid);
