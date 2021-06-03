@@ -46,13 +46,60 @@ public class MiscUtilsTest {
         assertThat(observation1.getUuid(), is("123"));
         verify(observation2, times(1)).setUuid(anyString());
     }
-    
+
     @Test
     public void onlyDigits_shouldReturnTrueGivenStringIsAllNumericFalseOtherswise() {
-        
+
         assertTrue(MiscUtils.onlyDigits("123"));
         assertFalse(MiscUtils.onlyDigits("400d7e07-6de6-40ac-1186-dcce12408e71"));
-        
+
+    }
+
+    @Test
+    public void shouldReturnTrueForValidFormFieldPath() {
+        boolean isValidFormFieldPath = MiscUtils.isValidFormFieldPath("Initial Medical Examination.2/8-0/139-0/140-34");
+        assertTrue(isValidFormFieldPath);
+    }
+
+    @Test
+    public void shouldReturnFalseForFormFieldPathWithHyphenFollowedByNoNumber() {
+        boolean isValidFormFieldPath = MiscUtils.isValidFormFieldPath("Initial Medical Examination.2/8-0/139-/140-34");
+        assertFalse(isValidFormFieldPath);
+    }
+
+    @Test
+    public void shouldReturnTrueForFormFieldPathWithUnderscoresAndDigitsInTheFormName() {
+        boolean isValidFormFieldPath = MiscUtils.isValidFormFieldPath("Initial_Medical_Examination_1.2/8-0/139-1/140-34");
+        assertTrue(isValidFormFieldPath);
+    }
+
+    @Test
+    public void shouldReturnTrueForFormFieldPathWithNoSpacesInTheFormName() {
+        boolean isValidFormFieldPath = MiscUtils.isValidFormFieldPath("InitialMedicalExamination1.2/8-0/139-1/140-34");
+        assertTrue(isValidFormFieldPath);
+    }
+
+    @Test
+    public void shouldReturnFalseForFormFieldPathWithSlashAtTheEnd() {
+        boolean isValidFormFieldPath = MiscUtils.isValidFormFieldPath("InitialMedicalExamination1.2/8-0/139-1/140-34/");
+        assertFalse(isValidFormFieldPath);
+    }
+
+    @Test
+    public void shouldReturnFalseForFormFieldPathWithSlashAtTheEndFollowedByANumber() {
+        boolean isValidFormFieldPath = MiscUtils.isValidFormFieldPath("InitialMedicalExamination1.2/8-0/139-1/140-34/2");
+        assertFalse(isValidFormFieldPath);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfTheFormFieldPathIsNotValid() {
+        BahmniObservation observation1 = new BahmniObservation();
+        observation1.setUuid("123");
+        observation1.setFormFieldPath("InitialMedicalExamination1.2/8-0/139-/140-34");
+        BahmniObservation observation2 = mock(BahmniObservation.class);
+        Collection<BahmniObservation> bahmniObservations = Arrays.asList(observation1, observation2);
+
+        MiscUtils.validateFormFieldPath(bahmniObservations);
     }
 
 }
