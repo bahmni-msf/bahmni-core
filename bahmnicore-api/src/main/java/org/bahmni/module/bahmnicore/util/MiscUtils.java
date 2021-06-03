@@ -34,9 +34,21 @@ public class MiscUtils {
             }
         }
     }
-	
+
 	public static boolean onlyDigits(String input) {
 		Pattern onlyDigits = Pattern.compile("\\d+");
 		return onlyDigits.matcher(input).matches();
 	}
+
+    public static void validateFormFieldPath(Collection<BahmniObservation> bahmniObservations) {
+        bahmniObservations.forEach(observation -> {
+            if ( observation.getFormFieldPath() != null && !isValidFormFieldPath(observation.getFormFieldPath())) {
+                throw new IllegalArgumentException("Not a valid formFieldPath"+ observation.getFormFieldPath());
+            }
+        });
+    }
+
+    public static boolean isValidFormFieldPath(String formFieldPath) {
+        return formFieldPath.matches("[\\s\\w]*.[\\d]+(/[\\d]+-[\\d]+)*");
+    }
 }
