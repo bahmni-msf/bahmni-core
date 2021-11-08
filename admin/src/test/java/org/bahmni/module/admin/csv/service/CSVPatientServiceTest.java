@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.openmrs.Concept;
 import org.openmrs.ConceptName;
 import org.openmrs.Patient;
+import org.openmrs.PatientIdentifierType;
 import org.openmrs.PersonAddress;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.api.AdministrationService;
@@ -145,6 +146,51 @@ public class CSVPatientServiceTest {
         assertEquals("reg-no", capturedPatient.getPatientIdentifier().getIdentifier());
         assertEquals(new Integer(34), capturedPatient.getAge());
 
+    }
+
+    @Test
+    public void saveExtraPatientIdentifiers() throws ParseException {
+        PatientRow patientRow = new PatientRow();
+
+        String extraIdentifierName1 = "National ID";
+        String extraIdentifierName2 = "Local Health ID";
+        List<KeyValue> identifiers = new ArrayList<KeyValue>() {{
+            add(new KeyValue(extraIdentifierName1, "TestNationalID"));
+            add(new KeyValue(extraIdentifierName2, "TestLocalHealthID"));
+        }};
+        patientRow.identifiers = identifiers;
+
+        PatientIdentifierType patientIdentifierType1 = new PatientIdentifierType(1);
+        PatientIdentifierType patientIdentifierType2 = new PatientIdentifierType(2);
+        when(mockPatientService.getPatientIdentifierTypeByName(extraIdentifierName1)).thenReturn(patientIdentifierType1);
+        when(mockPatientService.getPatientIdentifierTypeByName(extraIdentifierName2)).thenReturn(patientIdentifierType2);
+
+        ArgumentCaptor<Patient> patientArgumentCaptor = ArgumentCaptor.forClass(Patient.class);
+        CSVPatientService csvPatientService = new CSVPatientService(mockPatientService, mockPersonService, conceptService, mockAdminService, csvAddressService);
+
+        csvPatientService.save(patientRow);
+
+        verify(mockPatientService).savePatient(patientArgumentCaptor.capture());
+
+        Patient capturedPatient = patientArgumentCaptor.getValue();
+        assertEquals("TestNationalID", capturedPatient.getPatientIdentifier(patientIdentifierType1).getIdentifier());
+        assertEquals("TestLocalHealthID", capturedPatient.getPatientIdentifier(patientIdentifierType2).getIdentifier());
+    }
+
+    @Test
+    public void failsWhenNonExistingIdentifierIsImported() throws ParseException {
+        PatientRow patientRow = new PatientRow();
+
+        List<KeyValue> identifiers = new ArrayList<KeyValue>() {{
+            add(new KeyValue("Invalid ID", "TestID"));
+        }};
+        patientRow.identifiers = identifiers;
+
+        CSVPatientService csvPatientService = new CSVPatientService(mockPatientService, mockPersonService, conceptService, mockAdminService, csvAddressService);
+
+        exception.expect(RuntimeException.class);
+        exception.expectMessage("Invalid identifier name: Invalid ID");
+        csvPatientService.save(patientRow);
     }
 
     @Test
