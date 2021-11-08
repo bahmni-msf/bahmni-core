@@ -62,7 +62,11 @@ public class CSVPatientService {
             patient.setBirthdateFromAge(Integer.parseInt(patientRow.age), new Date());
         }
         patient.setGender(patientRow.gender);
-        patient.addIdentifier(new PatientIdentifier(patientRow.registrationNumber, getPatientIdentifierType(), null));
+        PatientIdentifier patientIdentifier = new PatientIdentifier(patientRow.registrationNumber, getPatientIdentifierType(), null);
+        patientIdentifier.setPreferred(true);
+        patient.addIdentifier(patientIdentifier);
+
+        addExtraPatientIdentifiers(patient, patientRow);
 
         List<KeyValue> addressParts = patientRow.addressParts;
         PersonAddress personAddress = csvAddressService.getPersonAddress(addressParts);
@@ -118,6 +122,19 @@ public class CSVPatientService {
                 skipCurrentAttribute = true;
         }
         return skipCurrentAttribute;
+    }
+
+    private void addExtraPatientIdentifiers(Patient patient, PatientRow patientRow) throws ParseException {
+        for (KeyValue identifier : patientRow.identifiers) {
+            if (StringUtils.isBlank(identifier.getValue()))
+                continue;
+            PatientIdentifierType patientIdentifierType = patientService.getPatientIdentifierTypeByName(identifier.getKey());
+            if (patientIdentifierType != null) {
+                patient.addIdentifier(new PatientIdentifier(identifier.getValue(), patientIdentifierType, null));
+            } else {
+                throw new RuntimeException("Invalid identifier name: " + identifier.getKey());
+            }
+        }
     }
 
     private Concept getConceptByName(String name) {
