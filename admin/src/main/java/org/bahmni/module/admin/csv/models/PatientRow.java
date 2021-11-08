@@ -36,6 +36,9 @@ public class PatientRow extends CSVEntity {
     @CSVRegexHeader(pattern = "Attribute.*")
     public List<KeyValue> attributes = new ArrayList<>();
 
+    @CSVRegexHeader(pattern = "Identifier.*")
+    public List<KeyValue> identifiers = new ArrayList<>();
+
     public Date getRegistrationDate() throws ParseException {
         if (registrationDate == null)
             return null;
