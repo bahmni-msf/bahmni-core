@@ -82,7 +82,7 @@ public class PatientProgramPersister implements EntityPersister<PatientProgramRo
             patientProgram.setProgram(program);
             patientProgram.setDateEnrolled(patientProgramRow.getEnrollmentDate());
 
-            if (!StringUtils.isEmpty(patientProgramRow.programOutcome) && patientProgramRow.getDateCompleted() == null) {
+            if (!StringUtils.isEmpty(patientProgramRow.programOutcome) && patientProgramRow.getDateCompleted() != null) {
                 Concept OutComeConcept = getProgramOutComeByName(patientProgramRow.programOutcome, patientProgramRow.programName);
                 patientProgram.setOutcome(OutComeConcept);
                 patientProgram.setDateCompleted(patientProgramRow.getDateCompleted());
