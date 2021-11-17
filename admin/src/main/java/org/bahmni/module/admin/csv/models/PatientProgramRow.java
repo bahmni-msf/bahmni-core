@@ -24,7 +24,20 @@ public class PatientProgramRow extends CSVEntity {
     @CSVHeader(name = "EnrollmentDate")
     public String enrollmentDateTime;
 
+    @CSVHeader(name = "ProgramOutcome", optional = true)
+    public String programOutcome;
+
+    @CSVHeader(name = "DateCompleted", optional = true)
+    public String completedDateTime;
+
     public Date getEnrollmentDate() throws ParseException {
         return getDateFromString(enrollmentDateTime);
+    }
+
+    public Date getDateCompleted() throws ParseException {
+        if (completedDateTime.isEmpty()) {
+            return null;
+        }
+        return getDateFromString(completedDateTime);
     }
 }
