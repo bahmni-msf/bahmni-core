@@ -10,12 +10,14 @@ import org.openmrs.ConceptName;
 import org.openmrs.Patient;
 import org.openmrs.PatientProgram;
 import org.openmrs.Program;
+import org.openmrs.Concept;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -60,14 +62,30 @@ public class PatientProgramPersister implements EntityPersister<PatientProgramRo
 
             Program program = getProgramByName(patientProgramRow.programName);
             List<PatientProgram> existingEnrolledPrograms = programWorkflowService.getPatientPrograms(patient, program, null, null, null, null, false);
+
+            if((patientProgramRow.getDateCompleted() == null && !StringUtils.isEmpty(patientProgramRow.programOutcome)) ||
+                    (patientProgramRow.getDateCompleted() != null && StringUtils.isEmpty(patientProgramRow.programOutcome))) {
+                return new Messages(getInvalidClosedProgramMessage(patientProgramRow));
+            }
+
             if (existingEnrolledPrograms != null && !existingEnrolledPrograms.isEmpty()) {
-                return new Messages(getErrorMessage(existingEnrolledPrograms));
+                for (PatientProgram enrolledProgram : existingEnrolledPrograms) {
+                    if (patientProgramRow.getDateCompleted() == null && enrolledProgram.getDateCompleted() == null) {
+                        return new Messages(getErrorMessage(existingEnrolledPrograms));
+                    }
+                }
             }
 
             PatientProgram patientProgram = new PatientProgram();
             patientProgram.setPatient(patient);
             patientProgram.setProgram(program);
             patientProgram.setDateEnrolled(patientProgramRow.getEnrollmentDate());
+
+            if (!StringUtils.isEmpty(patientProgramRow.programOutcome) && patientProgramRow.getDateCompleted() == null) {
+                Concept OutComeConcept = getProgramOutComeByName(patientProgramRow.programOutcome, patientProgramRow.programName);
+                patientProgram.setOutcome(OutComeConcept);
+                patientProgram.setDateCompleted(patientProgramRow.getDateCompleted());
+            }
 
             programWorkflowService.savePatientProgram(patientProgram);
 
@@ -93,6 +111,12 @@ public class PatientProgramPersister implements EntityPersister<PatientProgramRo
         return new Messages("No matching patients found with ID:'" + patientProgramRow.patientIdentifier + "'");
     }
 
+    private String getInvalidClosedProgramMessage(PatientProgramRow patientProgramRow) {
+        String errorMessage = StringUtils.isEmpty(patientProgramRow.programOutcome) ?
+                "Outcome can’t be empty when date completed is not null" :  "Date completed can’t be empty for outcome " + patientProgramRow.programOutcome;
+        return errorMessage;
+    }
+
     private Program getProgramByName(String programName) {
         for (Program program : programWorkflowService.getAllPrograms()) {
             if (isNamed(program, programName)) {
@@ -109,5 +133,17 @@ public class PatientProgramPersister implements EntityPersister<PatientProgramRo
             }
         }
         return false;
+    }
+
+    private Concept getProgramOutComeByName(String outcome, String programName) {
+        Program program = getProgramByName(programName);
+        if (outcome != null && !StringUtils.isEmpty(outcome)) {
+            for (Concept concept : programWorkflowService.getPossibleOutcomes(program.getProgramId())) {
+                if (outcome.equalsIgnoreCase(String.valueOf(concept.getName()))) {
+                    return concept;
+                }
+            }
+        }
+        return null;
     }
 }
