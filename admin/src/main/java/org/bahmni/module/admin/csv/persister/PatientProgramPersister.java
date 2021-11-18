@@ -144,6 +144,6 @@ public class PatientProgramPersister implements EntityPersister<PatientProgramRo
                 }
             }
         }
-        return null;
+        throw new RuntimeException("No matching Outcome found with name: " + outcome + " for program " + programName);
     }
 }
