@@ -8,9 +8,14 @@ import org.bahmni.module.admin.csv.models.MultipleEncounterRow;
 import org.bahmni.module.admin.csv.service.PatientMatchService;
 import org.bahmni.module.admin.encounter.BahmniEncounterTransactionImportService;
 import org.bahmni.module.admin.retrospectiveEncounter.service.DuplicateObservationService;
-import org.openmrs.Patient;
+import org.bahmni.module.bahmnicore.model.bahmniPatientProgram.BahmniPatientProgram;
+import org.openmrs.PatientProgram;
+import org.openmrs.Program;
 import org.openmrs.Provider;
 import org.openmrs.User;
+import org.openmrs.ConceptName;
+import org.openmrs.Patient;
+import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.context.Context;
 import org.openmrs.api.context.UserContext;
 import org.openmrs.module.auditlog.service.AuditLogService;
@@ -20,6 +25,8 @@ import org.openmrs.module.bahmniemrapi.encountertransaction.service.BahmniEncoun
 import org.openmrs.module.emrapi.encounter.domain.EncounterTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +34,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 
 @Component
 public class EncounterPersister implements EntityPersister<MultipleEncounterRow> {
@@ -41,6 +50,8 @@ public class EncounterPersister implements EntityPersister<MultipleEncounterRow>
     private BahmniEncounterTransactionImportService bahmniEncounterTransactionImportService;
     @Autowired
     private AuditLogService auditLogService;
+    @Autowired
+    private ProgramWorkflowService programWorkflowService;
 
     private UserContext userContext;
     private String patientMatchingAlgorithmClassName;
@@ -91,6 +102,22 @@ public class EncounterPersister implements EntityPersister<MultipleEncounterRow>
                 for (BahmniEncounterTransaction bahmniEncounterTransaction : bahmniEncounterTransactions) {
                     bahmniEncounterTransaction.setLocationUuid(loginUuid);
                     bahmniEncounterTransaction.setProviders(providers);
+                    if((multipleEncounterRow.getProgramEnrollmentDate() == null && !StringUtils.isEmpty(multipleEncounterRow.patientProgramName)) ||
+                            (multipleEncounterRow.getProgramEnrollmentDate() != null && StringUtils.isEmpty(multipleEncounterRow.patientProgramName))) {
+                        return new Messages(getInvalidProgramEnrollMessage(multipleEncounterRow));
+                    }
+
+                    if (!StringUtils.isEmpty(multipleEncounterRow.patientProgramName) && multipleEncounterRow.getProgramEnrollmentDate() != null) {
+                        Program program = getProgramByName(multipleEncounterRow.patientProgramName);
+                        List<PatientProgram> existingEnrolledPrograms = programWorkflowService.getPatientPrograms(patient, program, null, null, null, null, false);
+
+                        List<PatientProgram> patientPrograms = getEnrolledPatientPrograms(existingEnrolledPrograms, multipleEncounterRow);
+                        if (patientPrograms.size() == 0)
+                            return noMatchingProgramWithEnrollmentDate(multipleEncounterRow);
+                        if (patientPrograms.size() > 1)
+                            return moreThanOneProgramHasSameEnrollmentDateMessage(multipleEncounterRow);
+                        bahmniEncounterTransaction.setPatientProgramUuid(patientPrograms.get(0).getUuid());
+                    }
                     duplicateObservationService.filter(bahmniEncounterTransaction, patient, multipleEncounterRow.getVisitStartDate(), multipleEncounterRow.getVisitEndDate());
                 }
                 Boolean isAuditLogEnabled = Boolean.valueOf(Context.getAdministrationService().getGlobalProperty("bahmni.enableAuditLog"));
@@ -149,5 +176,45 @@ public class EncounterPersister implements EntityPersister<MultipleEncounterRow>
 
     private Messages noMatchingProviders(MultipleEncounterRow multipleEncounterRow) {
         return new Messages("No matching providers found with username:'" + multipleEncounterRow.providerName + "'");
+    }
+
+    private Messages noMatchingProgramWithEnrollmentDate(MultipleEncounterRow multipleEncounterRow) {
+        return new Messages("No program with matching enrollment date found with ID:'" + multipleEncounterRow.patientIdentifier + "'");
+    }
+
+    private String getInvalidProgramEnrollMessage(MultipleEncounterRow multipleEncounterRow) {
+        String errorMessage = StringUtils.isEmpty(multipleEncounterRow.patientProgramName) ?
+                "Patient Program can’t be empty when enrolled date is not null" :  "Enrolled date can’t be empty for Patient Program " + multipleEncounterRow.patientProgramName;
+        return errorMessage;
+    }
+    private Messages moreThanOneProgramHasSameEnrollmentDateMessage(MultipleEncounterRow multipleEncounterRow) {
+        return new Messages("got more than one program with same enrollment date for ID:'" + multipleEncounterRow.patientIdentifier + "'");
+    }
+
+    private Program getProgramByName(String programName) {
+        for (Program program : programWorkflowService.getAllPrograms()) {
+            if (isNamed(program, programName)) {
+                return program;
+            }
+        }
+        throw new RuntimeException("No matching Program found with name: " + programName);
+    }
+    private boolean isNamed(Program program, String programName) {
+        for (ConceptName conceptName : program.getConcept().getNames()) {
+            if (programName.equalsIgnoreCase(conceptName.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<PatientProgram> getEnrolledPatientPrograms(List<PatientProgram> enrolledPrograms, MultipleEncounterRow multipleEncounterRow) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        List<PatientProgram> patientPrograms = new ArrayList<>();
+        for (PatientProgram patientProgram : enrolledPrograms) {
+            if ((patientProgram instanceof BahmniPatientProgram) && (sdf.format(patientProgram.getDateEnrolled()).equals(sdf.format(multipleEncounterRow.getProgramEnrollmentDate()))))
+                patientPrograms.add(patientProgram);
+        }
+        return patientPrograms;
     }
 }
