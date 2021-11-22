@@ -142,7 +142,7 @@
         <dependency>
                 <groupId>org.bahmni.module</groupId>
                 <artifactId>form2-utils</artifactId>
-                <version>0.93-SNAPSHOT</version>
+                <version>0.94-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.openmrs.web</groupId>
@@ -243,7 +243,7 @@
                 <filtering>true</filtering>
             </testResource>
         </testResources>
-        
+
         <plugins>
             <plugin>
                 <groupId>org.jacoco</groupId>
