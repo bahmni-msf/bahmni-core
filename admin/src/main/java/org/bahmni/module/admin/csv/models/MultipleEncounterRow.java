@@ -39,6 +39,18 @@ public class MultipleEncounterRow extends CSVEntity {
     @CSVRepeatingRegexHeaders(type = EncounterRow.class)
     public List<EncounterRow> encounterRows;
 
+    @CSVHeader(name = "ProgramName", optional = true)
+    public String patientProgramName;
+
+    @CSVHeader(name = "ProgramEnrollmentDate", optional = true)
+    public String enrollmentDateTime;
+
+    public Date getProgramEnrollmentDate() throws ParseException {
+        if (enrollmentDateTime.isEmpty())
+            return null;
+        return getDateFromString(enrollmentDateTime);
+    }
+
     public List<EncounterRow> getNonEmptyEncounterRows() {
         List<EncounterRow> nonEmptyEncounters = new ArrayList<>();
         if (encounterRows == null)
