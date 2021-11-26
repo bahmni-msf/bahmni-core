@@ -186,7 +186,6 @@
                 <artifactId>bahmni-migrator</artifactId>
                 <version>${bahmniJavaUtilsVersion}</version>
                 <type>jar</type>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.openmrs.module</groupId>
