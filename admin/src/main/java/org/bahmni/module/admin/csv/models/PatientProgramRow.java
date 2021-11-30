@@ -35,7 +35,7 @@ public class PatientProgramRow extends CSVEntity {
     }
 
     public Date getDateCompleted() throws ParseException {
-        if (completedDateTime.isEmpty()) {
+        if (completedDateTime == null || completedDateTime.isEmpty()) {
             return null;
         }
         return getDateFromString(completedDateTime);

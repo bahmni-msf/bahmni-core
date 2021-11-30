@@ -5,12 +5,16 @@ import org.bahmni.csv.CSVEntity;
 import org.bahmni.csv.KeyValue;
 import org.bahmni.csv.annotation.CSVHeader;
 import org.bahmni.csv.annotation.CSVRegexHeader;
+import org.bahmni.module.admin.csv.utils.CSVUtils;
+import org.openmrs.api.APIException;
 
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.bahmni.module.admin.csv.utils.CSVUtils.getDateFromString;
+import static org.bahmni.module.admin.csv.utils.CSVUtils.getTodayDate;
 
 public class EncounterRow extends CSVEntity {
 
@@ -24,7 +28,10 @@ public class EncounterRow extends CSVEntity {
     public List<KeyValue> diagnosesRows;
 
     public Date getEncounterDate() throws ParseException {
-        return getDateFromString(encounterDateTime);
+            Date encounterDate = getDateFromString(encounterDateTime);
+            if(getTodayDate().before(encounterDate))
+                throw new APIException(format("Future date is not allowed for [%s] encounterDate ", encounterDateTime));
+        return encounterDate;
     }
 
     public boolean hasObservations() {
