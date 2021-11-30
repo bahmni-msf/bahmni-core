@@ -46,7 +46,7 @@ public class MultipleEncounterRow extends CSVEntity {
     public String enrollmentDateTime;
 
     public Date getProgramEnrollmentDate() throws ParseException {
-        if (enrollmentDateTime.isEmpty())
+        if(enrollmentDateTime == null || enrollmentDateTime.isEmpty())
             return null;
         return getDateFromString(enrollmentDateTime);
     }
@@ -65,13 +65,14 @@ public class MultipleEncounterRow extends CSVEntity {
     }
 
     public Date getVisitStartDate() throws ParseException {
-        if (visitStartDate == null)
+        if (visitStartDate == null || visitStartDate.isEmpty())
             return null;
+
         return getDateFromString(visitStartDate);
     }
 
     public Date getVisitEndDate() throws ParseException {
-        if (visitEndDate == null)
+        if (visitEndDate == null || visitEndDate.isEmpty())
             return null;
         return getDateFromString(visitEndDate);
     }
