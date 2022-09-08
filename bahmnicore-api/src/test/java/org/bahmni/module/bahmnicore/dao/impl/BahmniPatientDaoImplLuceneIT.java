@@ -16,6 +16,10 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 2e0eaeaf (Bindu | BAH-1787 | Fix bean creation error with PatientRegistrationService)
 public class BahmniPatientDaoImplLuceneIT extends BaseIntegrationTest {
     @Autowired
     private PatientDao patientDao;
