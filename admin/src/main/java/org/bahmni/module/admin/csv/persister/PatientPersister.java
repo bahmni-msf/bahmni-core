@@ -2,7 +2,10 @@ package org.bahmni.module.admin.csv.persister;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bahmni.common.config.registration.service.RegistrationPageReaderService;
 import org.bahmni.common.config.registration.service.RegistrationPageService;
+import org.bahmni.common.config.registration.service.impl.RegistrationPageReaderServiceImpl;
+import org.bahmni.common.config.registration.service.impl.RegistrationPageServiceImpl;
 import org.bahmni.csv.EntityPersister;
 import org.bahmni.csv.Messages;
 import org.bahmni.module.admin.csv.models.PatientRow;
@@ -33,15 +36,16 @@ public class PatientPersister implements EntityPersister<PatientRow> {
     private ConceptService conceptService;
 
     @Autowired
-    private RegistrationPageService registrationPageService;
-
-    @Autowired
     @Qualifier("adminService")
     private AdministrationService administrationService;
 
     private CSVAddressService csvAddressService;
 
     private static final Logger log = LogManager.getLogger(PatientPersister.class);
+
+    private RegistrationPageReaderService registrationPageReaderService = new RegistrationPageReaderServiceImpl();
+
+    private RegistrationPageService registrationPageService = new RegistrationPageServiceImpl(registrationPageReaderService);
 
     public void init(UserContext userContext) {
         this.userContext = userContext;
