@@ -9,7 +9,7 @@ import org.bahmni.module.admin.csv.models.MultipleEncounterRow;
 import org.bahmni.module.admin.csv.service.PatientMatchService;
 import org.bahmni.module.admin.encounter.BahmniEncounterTransactionImportService;
 import org.bahmni.module.admin.retrospectiveEncounter.service.DuplicateObservationService;
-import org.bahmni.module.bahmnicore.model.bahmniPatientProgram.BahmniPatientProgram;
+// import org.bahmni.module.bahmnicore.model.bahmniPatientProgram.BahmniPatientProgram;
 import org.openmrs.PatientProgram;
 import org.openmrs.Program;
 import org.openmrs.Provider;
@@ -213,7 +213,7 @@ public class EncounterPersister implements EntityPersister<MultipleEncounterRow>
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         List<PatientProgram> patientPrograms = new ArrayList<>();
         for (PatientProgram patientProgram : enrolledPrograms) {
-            if ((patientProgram instanceof BahmniPatientProgram) && (sdf.format(patientProgram.getDateEnrolled()).equals(sdf.format(multipleEncounterRow.getProgramEnrollmentDate()))))
+            if ((sdf.format(patientProgram.getDateEnrolled()).equals(sdf.format(multipleEncounterRow.getProgramEnrollmentDate()))))
                 patientPrograms.add(patientProgram);
         }
         return patientPrograms;
