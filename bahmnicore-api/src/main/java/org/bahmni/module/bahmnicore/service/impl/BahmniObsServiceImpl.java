@@ -61,7 +61,8 @@ public class BahmniObsServiceImpl implements BahmniObsService {
             List<String> conceptNames = getConceptNames(concepts);
 
             List<Obs> observations = obsDao.getObsByPatientAndVisit(patientUuid, conceptNames,
-                    visitDao.getVisitIdsFor(patientUuid, numberOfVisits), Integer.MAX_VALUE, ObsDaoImpl.OrderBy.DESC, obsIgnoreList, filterOutOrderObs, order, startDate, endDate);
+                    visitDao.getVisitIdsFor(patientUuid, numberOfVisits), -1,
+                    ObsDaoImpl.OrderBy.DESC, obsIgnoreList, filterOutOrderObs, order, startDate, endDate);
 
             return omrsObsToBahmniObsMapper.map(filterIgnoredObs(obsIgnoreList,observations), concepts);
         }
