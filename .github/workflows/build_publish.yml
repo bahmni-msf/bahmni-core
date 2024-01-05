@@ -1,7 +1,7 @@
 name: Build and Publish package
 on:
   push:
-    branches: [ ocp-dev-bahmni-lite ]
+    branches: [ testOneByOne ]
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
           sudo gem install compass -v 1.0.3
       - name: Build with Maven
         run: ./mvnw clean install -DskipTests
-        
+
       - name: Set Omod name
         run: echo "OMOD_NAME=$(basename "$(ls -1  bahmnicore-omod/target/*.omod)" .omod)" >> $GITHUB_ENV
       - name: Configure AWS Credentials

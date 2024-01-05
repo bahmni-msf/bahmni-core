@@ -166,7 +166,8 @@ public class CSVPatientServiceTest {
         when(mockPatientService.getPatientIdentifierTypeByName(extraIdentifierName2)).thenReturn(patientIdentifierType2);
 
         ArgumentCaptor<Patient> patientArgumentCaptor = ArgumentCaptor.forClass(Patient.class);
-        CSVPatientService csvPatientService = new CSVPatientService(mockPatientService, mockPersonService, conceptService, mockAdminService, csvAddressService);
+        CSVPatientService csvPatientService = new CSVPatientService(mockPatientService,
+                mockPersonService, conceptService, mockAdminService, csvAddressService, registrationPageService);
 
         csvPatientService.save(patientRow);
 
@@ -186,7 +187,8 @@ public class CSVPatientServiceTest {
         }};
         patientRow.identifiers = identifiers;
 
-        CSVPatientService csvPatientService = new CSVPatientService(mockPatientService, mockPersonService, conceptService, mockAdminService, csvAddressService);
+        CSVPatientService csvPatientService = new CSVPatientService(mockPatientService,
+                mockPersonService, conceptService, mockAdminService, csvAddressService, registrationPageService);
 
         exception.expect(RuntimeException.class);
         exception.expectMessage("Invalid identifier name: Invalid ID");
