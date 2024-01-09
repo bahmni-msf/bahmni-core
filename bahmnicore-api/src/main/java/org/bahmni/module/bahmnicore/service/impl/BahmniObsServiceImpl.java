@@ -76,8 +76,8 @@ public class BahmniObsServiceImpl implements BahmniObsService {
         if (CollectionUtils.isNotEmpty(concepts)) {
             List<String> conceptNames = getConceptNames(concepts);
             final List<Obs> observations = obsDao.getObsFor(patientUuid, conceptNames, visitDao.getEncounterIds(patientUuid, numberOfEncounters, numberOfVisits),
-                    visitDao.getVisitIdsFor(patientUuid, numberOfVisits), -1, OrderBy.DESC, obsIgnoreList,
-                    filterOutOrderObs, order, startDate, endDate);
+                    visitDao.getVisitIdsFor(patientUuid, numberOfVisits), Integer.MAX_VALUE,
+                    OrderBy.DESC, obsIgnoreList, filterOutOrderObs, order, startDate, endDate);
             return omrsObsToBahmniObsMapper.map(filterIgnoredObs(obsIgnoreList, observations), concepts);
         }
         return Collections.EMPTY_LIST;

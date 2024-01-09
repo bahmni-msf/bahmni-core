@@ -294,7 +294,8 @@ public class BahmniObsServiceImplTest {
         Obs weightObs = mock(Obs.class);
         when(visitDao.getVisitIdsFor(patientUuid, 3)).thenReturn(visitIds);
         final List<Obs> observations = asList(heightObs, weightObs);
-        when(obsDao.getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null)).thenReturn(observations);
+        when(obsDao.getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds,
+                Integer.MAX_VALUE, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null)).thenReturn(observations);
         final BahmniObservation bahmniObservationHeight = mock(BahmniObservation.class);
         final BahmniObservation bahmniObservationWeight = mock(BahmniObservation.class);
         final List<BahmniObservation> expectedBahmniObs = asList(bahmniObservationHeight, bahmniObservationWeight);
@@ -303,7 +304,8 @@ public class BahmniObsServiceImplTest {
         final Collection<BahmniObservation> actualBahmniObs = bahmniObsService.observationsFor(patientUuid, conceptNames, 3, null, emptyList(), null, null, null, null);
 
         verify(visitDao).getVisitIdsFor(patientUuid, 3);
-        verify(obsDao).getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null);
+        verify(obsDao).getObsByPatientAndVisit(patientUuid, asList("Height", "Weight"), visitIds,
+                Integer.MAX_VALUE, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null);
         verify(omrsObsToBahmniObsMapper).map(anyListOf(Obs.class), anyCollectionOf(Concept.class));
         assertEquals(2, actualBahmniObs.size());
         assertEquals(expectedBahmniObs, actualBahmniObs);
@@ -330,7 +332,8 @@ public class BahmniObsServiceImplTest {
         List<Integer> encounterIds = asList(40, 41, 42, 43, 44);
         when(visitDao.getEncounterIds(patientUuid, 5, 3)).thenReturn(encounterIds);
         final List<Obs> observations = asList(heightObs, weightObs);
-        when(obsDao.getObsFor(patientUuid, asList("Height", "Weight"), encounterIds, visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null)).thenReturn(observations);
+        when(obsDao.getObsFor(patientUuid, asList("Height", "Weight"), encounterIds, visitIds,
+                Integer.MAX_VALUE, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null)).thenReturn(observations);
         final BahmniObservation bahmniObservationHeight = mock(BahmniObservation.class);
         final BahmniObservation bahmniObservationWeight = mock(BahmniObservation.class);
         final List<BahmniObservation> expectedBahmniObs = asList(bahmniObservationHeight, bahmniObservationWeight);
@@ -340,7 +343,8 @@ public class BahmniObsServiceImplTest {
 
         verify(visitDao).getVisitIdsFor(patientUuid, 3);
         verify(visitDao).getEncounterIds(patientUuid, 5, 3);
-        verify(obsDao).getObsFor(patientUuid, asList("Height", "Weight"), encounterIds, visitIds, -1, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null);
+        verify(obsDao).getObsFor(patientUuid, asList("Height", "Weight"), encounterIds, visitIds,
+                Integer.MAX_VALUE, ObsDaoImpl.OrderBy.DESC, emptyList(), null, null, null, null);
         verify(omrsObsToBahmniObsMapper).map(anyListOf(Obs.class), anyCollectionOf(Concept.class));
         assertEquals(2, actualBahmniObs.size());
         assertEquals(expectedBahmniObs, actualBahmniObs);
