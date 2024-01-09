@@ -1,7 +1,7 @@
 name: Build and Publish package
 on:
   push:
-    branches: [ master ]
+    branches: [ ocp-dev-bahmni-lite ]
   workflow_dispatch:
 
 jobs:
@@ -14,15 +14,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-          server-id: nexus-sonatype
-          server-username: NEXUS_USERNAME
-          server-password: NEXUS_PASSWORD
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -31,9 +22,19 @@ jobs:
       - name: Install compass
         run: |
           sudo gem install compass -v 1.0.3
-      - name: Build and deploy with Maven
-        run: ./mvnw --no-transfer-progress clean -U deploy
-        env:
-          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+      - name: Build with Maven
+        run: ./mvnw clean install
 
+      - name: Set Omod name
+        run: echo "OMOD_NAME=$(basename "$(ls -1  bahmnicore-omod/target/*.omod)" .omod)" >> $GITHUB_ENV
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.BAHMNI_LITE_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.BAHMNI_LITE_AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.BAHMNI_LITE_AWS_REGION }}
+      - name: Upload omod
+        run: |
+          aws s3 cp bahmnicore-omod/target/${{env.OMOD_NAME}}.omod s3://v2-artefacts/${{github.event.repository.name}}/build/${{env.OMOD_NAME}}-$GITHUB_RUN_NUMBER.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
+          aws s3 rm s3://v2-artefacts/${{github.event.repository.name}}/latest/ --region ap-south-1 --recursive
+          aws s3 cp bahmnicore-omod/target/${{env.OMOD_NAME}}.omod s3://v2-artefacts/${{github.event.repository.name}}/latest/${{env.OMOD_NAME}}-$GITHUB_RUN_NUMBER.omod --region ${{ secrets.BAHMNI_LITE_AWS_REGION }} --acl public-read
