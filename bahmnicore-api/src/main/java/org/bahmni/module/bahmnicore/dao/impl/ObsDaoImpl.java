@@ -120,7 +120,7 @@ public class ObsDaoImpl implements ObsDao {
         }
 
         Query queryToGetObservations = sessionFactory.getCurrentSession().createQuery(query.toString());
-        queryToGetObservations.setMaxResults(limit != null ? limit : -1);
+        queryToGetObservations.setMaxResults(limit != null ? limit : Integer.MAX_VALUE);
         queryToGetObservations.setString("patientUuid", patientUuid);
         queryToGetObservations.setParameterList("conceptNames", conceptNames);
         queryToGetObservations.setParameter("conceptNameType", ConceptNameType.FULLY_SPECIFIED);
